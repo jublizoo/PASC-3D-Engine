@@ -29,8 +29,9 @@ public class Projection extends Display{
 		
 	}
 	
-	public void projectPoint() {
+	public Double[] projectPoint(Double[] point) {
 		
+		return(new Double[] {0.0, 0.0, 0.0});
 	}
 	
 }

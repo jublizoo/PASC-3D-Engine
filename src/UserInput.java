@@ -8,7 +8,7 @@ public class UserInput implements KeyListener{
 	Double[] posChange = new Double[] {0.0, 0.0, 0.0};
 	Double[] angleChange = new Double[] {0.0, 0.0};
 	//movementSpeed determines how quickly the player moves, lookingSpeed determines how quickly the angle of the viewer changes.
-	final double movementSpeed = 5.0;
+	final double movementSpeed = 2.0;
 	final double lookingSpeed = 0.02;
 	//If each of the corresponding keys are pressed.
 	boolean forward;
