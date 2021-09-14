@@ -23,6 +23,7 @@ public class Main implements ActionListener {
 		frame.setVisible(true);
 		frame.add(render);
 		frame.addKeyListener(in);
+		render.p.createCube();
 		timer.start();
 		
 	}

@@ -8,7 +8,7 @@ public class UserInput implements KeyListener{
 	Double[] posChange = new Double[] {0.0, 0.0, 0.0};
 	Double[] angleChange = new Double[] {0.0, 0.0};
 	//movementSpeed determines how quickly the player moves, lookingSpeed determines how quickly the angle of the viewer changes.
-	final double movementSpeed = 2.0;
+	final double movementSpeed = 0.08;
 	final double lookingSpeed = 0.02;
 	//If each of the corresponding keys are pressed.
 	boolean forward;
@@ -26,7 +26,6 @@ public class UserInput implements KeyListener{
 	@Override
 	public void keyPressed(KeyEvent e) {
 		char key = e.getKeyChar();
-		System.out.println("1: " + p.viewerAngle[0]);
 		if(key == 'w') {
 			if(!forward) {
 				forward = true;
@@ -100,19 +99,24 @@ public class UserInput implements KeyListener{
 		
 	}
 	
+	/*
+	 * The traditional angle model causes positive angles to result in positive sin values, which in our case should
+	 * be negative. We rotated the angle model, which causes x-values to the left of 0 degrees to be positive, which
+	 * is the inverse of the model we use.
+	 */
 	public void updatePosChange(){
 		if(currentDirection.equals("forward")) {
-			posChange[0] = movementSpeed * Math.sin(p.viewerAngle[0]);
+			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0]);
 			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0]);
 		}else if(currentDirection.equals("backward")) {
-			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0]);
-			posChange[1] = -movementSpeed * Math.cos(p.viewerAngle[0]);
+			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] + Math.PI);
+			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] + Math.PI);
 		}else if(currentDirection.equals("right")) {
-			posChange[0] = movementSpeed * Math.sin(p.viewerAngle[0] - Math.PI / 2);
+			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] - Math.PI / 2);
 			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] - Math.PI / 2);
 
 		}else if(currentDirection.equals("left")) {
-			posChange[0] = movementSpeed * Math.sin(p.viewerAngle[0] + Math.PI / 2);
+			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] + Math.PI / 2);
 			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] + Math.PI / 2);
 
 		}else if(currentDirection.equals("none")){
