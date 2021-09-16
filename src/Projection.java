@@ -49,18 +49,17 @@ public class Projection extends Display{
 		Double[] rotatedPoint = new Double[] { 0.0, 0.0, 0.0 };
 		Double[] finalPoint = new Double[] { 0.0, 0.0, 0.0 };
 
-		rotatedPoint[0] = relativePoint[0] * Math.cos(angleX) - relativePoint[2] * Math.sin(angleX);
-		rotatedPoint[2] = relativePoint[0] * Math.sin(angleX) + relativePoint[2] * Math.cos(angleX);
-		rotatedPoint[1] = startPoint[1];
+		rotatedPoint[0] = relativePoint[0] * Math.cos(angleX) - relativePoint[1] * Math.sin(angleX);
+		rotatedPoint[1] = relativePoint[0] * Math.sin(angleX) + relativePoint[1] * Math.cos(angleX);
+		rotatedPoint[2] = startPoint[2];
 
-		finalPoint[2] = rotatedPoint[2] * Math.cos(angleY) - rotatedPoint[1] * Math.sin(angleY) - relativePoint[2]
-				+ startPoint[2];
-		finalPoint[1] = rotatedPoint[2] * Math.sin(angleY) + rotatedPoint[1] * Math.cos(angleY) - relativePoint[1]
+		finalPoint[1] = rotatedPoint[1] * Math.cos(angleY) - rotatedPoint[2] * Math.sin(angleY) - relativePoint[1]
 				+ startPoint[1];
+		finalPoint[2] = rotatedPoint[1] * Math.sin(angleY) + rotatedPoint[2] * Math.cos(angleY) - relativePoint[2]
+				+ startPoint[2];
 		finalPoint[0] = rotatedPoint[0] - relativePoint[0] + startPoint[0];
 
 		return (new Double[] { finalPoint[0], finalPoint[1], finalPoint[2] });
-		
 	}
 	
 	//TODO Fix variable names
@@ -70,7 +69,8 @@ public class Projection extends Display{
 		Double[] point2d = new Double[] {};
 		
 		for(int i = 0; i < points2d.size(); i++) {
-			point2d = projectPoint(rotatePoint(points3d.get(i), viewerAngle[0], viewerAngle[1]));
+			//Angles are negative, because we are rotating to compensate for the angle of the viewers
+			point2d = projectPoint(rotatePoint(points3d.get(i), -viewerAngle[0], -viewerAngle[1]));
 			
 			points2d.get(i)[0] = point2d[0];
 			points2d.get(i)[1] = point2d[1];
