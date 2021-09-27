@@ -26,13 +26,21 @@ public class Render extends JPanel {
 	
 	//TODO Check if each point is within the inner window
 	public void drawPoints(Graphics2D g2d) {
+		int x;
+		int y;
 		p.projectAll();
-		for(int i = 0; i < p.points2d.size(); i++) {
-			if(p.points2d.get(i)[2] > p.zNear) {
-				g2d.fillOval((int) Math.round(p.points2d.get(i)[0]), (int) Math.round(p.points2d.get(i)[1]), 5, 5);
+		p.calculateTriangleMidPoints();
+		p.calculateMidPointDistances();
+		for(int a = 0; a < p.triangles2d.size(); a++) {
+			if(p.midPointDistances.get(a) > p.zNear / 2) {
+				for(int b = 0; b < 3; b++) {
+					x = (int) Math.round(p.triangles2d.get(a)[b][0]);
+					y = (int) Math.round(p.triangles2d.get(a)[b][1]);
+					g2d.fillOval(x, y, 5, 5);
+				}
 			}
 		}
-		
+				
 	}
 	
 }

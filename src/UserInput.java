@@ -1,9 +1,13 @@
-import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Scanner;
 
-public class UserInput implements KeyListener{
+public class UserInput extends Thread implements KeyListener{
+	//These values are passed in the constructor, and reference the object created in Main. We need these to change variables
 	Projection p;
+	MeshReader reader;
+	Scanner scan;
+	String textInput;
 	//These variables determine how much the position and angle of the viewer change each tick.
 	Double[] posChange = new Double[] {0.0, 0.0, 0.0};
 	Double[] angleChange = new Double[] {0.0, 0.0};
@@ -18,8 +22,27 @@ public class UserInput implements KeyListener{
 	//Direction the player is moving
 	String currentDirection = "";
 	
-	public UserInput(Projection p) {
+	public UserInput(Projection p, MeshReader reader) {
 		this.p = p;
+		this.reader = reader;
+		scan = new Scanner(System.in);
+		
+	}
+	
+	public void run() {
+		while(true) {
+			textInput = scan.nextLine();
+			reader.readFile(textInput);
+			for(int a = 0; a < p.triangles3d.size(); a++) {
+				for(int b = 0; b < 3; b++) {
+					for(int c = 0; c < 3; c++) {
+						System.out.println(p.triangles3d.get(a)[b][c]);
+					}
+				}
+			}
+			System.out.println(p.objIndexes.get(p.objIndexes.size() - 1)[0] + ", " + p.objIndexes.get(p.objIndexes.size() - 1)[1]);
+		}
+		
 	}
 
 	//If statements are to prevent each section of code from being re-activated before the key has been released.
@@ -130,4 +153,5 @@ public class UserInput implements KeyListener{
 		// TODO Auto-generated method stub
 		
 	}
+	
 }
