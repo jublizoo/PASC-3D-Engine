@@ -12,7 +12,7 @@ public class Projection extends Display{
 	Double[] viewerPos = new Double[] { 0.0, -5.0, 0.0 };
 	Double[] viewerAngle = new Double[] {0.0, 0.0};
 	/*
-	 * The triangles3d arrayList will store the location of each vertex in each triangle in 3D space. Each Double[][] stores a 
+	 * The getTriangles3d() arrayList will store the location of each vertex in each triangle in 3D space. Each Double[][] stores a 
 	 * triangle, the first field of the array represents which vertex we are looking for, and the second field of the
 	 * array represents which dimension we are looking for (x, y, z). 
 	 * The trianglesMid arrayList will store the location of the midpoint of each corresponding triangle. Each Double[]
@@ -30,11 +30,15 @@ public class Projection extends Display{
 	ArrayList<Double> midPointDistances = new ArrayList<Double>(); 
 	ArrayList<Double[][]> triangles2d = new ArrayList<Double[][]>();
 	/*
-	 * This stores the start and end index of each object within the triangles3d array. Each element of the ArrayList
+	 * This stores the start and end index of each object within the getTriangles3d() array. Each element of the ArrayList
 	 * represents a different object. Each Double[] stores the index of the first triangle of the object in the 
-	 * triangles3d ArrayList, and then the index of the last triangle of the object in the triangles3d ArrayList
+	 * getTriangles3d() ArrayList, and then the index of the last triangle of the object in the getTriangles3d() ArrayList
 	 */
 	ArrayList<Integer[]> objIndexes = new ArrayList<Integer[]>();
+	
+	public synchronized ArrayList<Double[][]> getTriangles3d() {
+		return(triangles3d);
+	}
 
 	public Double[] projectPoint(Double[] point3d) {
 		Double[] point2d = new Double[2];
@@ -77,9 +81,9 @@ public class Projection extends Display{
 		scaleY = innerHeight / viewerHeight;
 		Double[] point2d = new Double[] {};
 		
-		for(int a = 0; a < triangles3d.size(); a++) {
+		for(int a = 0; a < getTriangles3d().size(); a++) {
 			for(int b = 0; b < 3; b++) {
-				point2d = projectPoint(rotatePoint(triangles3d.get(a)[b], -viewerAngle[0], -viewerAngle[1]));
+				point2d = projectPoint(rotatePoint(getTriangles3d().get(a)[b], -viewerAngle[0], -viewerAngle[1]));
 				
 				triangles2d.get(a)[b][0] = point2d[0];
 				triangles2d.get(a)[b][1] = point2d[1];
@@ -91,10 +95,10 @@ public class Projection extends Display{
 	public void calculateTriangleMidPoints() {
 		Double[] tempAverage = new Double[] {0.0, 0.0, 0.0};
 		
-		for(int a = 0; a < triangles3d.size(); a++) {
+		for(int a = 0; a < getTriangles3d().size(); a++) {
 			for(int b = 0; b < 3; b++) {
 				for(int c = 0; c < 3; c++) {
-					tempAverage[c] += triangles3d.get(a)[b][c];
+					tempAverage[c] += getTriangles3d().get(a)[b][c];
 				}
 			}
 			

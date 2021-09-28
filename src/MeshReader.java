@@ -12,6 +12,7 @@ public class MeshReader {
 	BufferedReader reader;
 	Projection p;
 	ArrayList<String> wholeText;
+	Double[][] currentTriangle;
 	/* 
 	 * Where we should start looking for faces, vertices, and UVs, because the first few characters are used purely for
 	 * identification, and therefore we do not need to search them for information.
@@ -27,10 +28,11 @@ public class MeshReader {
 	
 	//TODO Search for the line number of the first line containing UVs.
 	public void readFile(String url) {
+		//The text resets for every file, not every line, so we must reset it here.
 		wholeText = new ArrayList<String>();
 		System.out.println("MeshReader running");
 		int currentLineNum = 0;
-		int triangleIndex = p.triangles3d.size() - 1;
+		int triangleIndex = p.getTriangles3d().size() - 1;
 		String currentLine = "";
 		
 		file = new File(url);
@@ -57,19 +59,37 @@ public class MeshReader {
 				System.out.println(e);
 			}
 			
+			currentTriangle = new Double[3][3];
+			
 			if(currentLine == null) {
+				//Adding the index of the last triangle in this file.
 				p.objIndexes.get(p.objIndexes.size() - 1)[1] = triangleIndex;
 				System.out.println("MeshReader search completed.");
 				return;
 			}else {
 				wholeText.add(currentLine);
 				if(currentLine.charAt(0) == 'f') {
-					p.triangles3d.add(new Double[3][3]);
+					findLineNums(currentLine);
+					/*
+					 * We want to add elements to the following ArrayLists AFTER we call the findLineNums function,
+					 * because we need to set the most recent element of triangles3d directly after adding the element
+					 * with a null value. If we do not do this, the projectAll function will run through every triangle,
+					 * including the "unset" null triangle. This will lead to a null pointer exception. To set the most
+					 * recent element of triangles3d directly after adding the element, the currentTriangle Double[][]
+					 * must already be set, which is done by calling the findLineNums function, meaning it must be 
+					 * called first.
+					 */
+					p.getTriangles3d().add(new Double[3][3]);
 					p.triangles2d.add(new Double[3][2]);
 					p.triangleMidPoints.add(new Double[3]);
 					p.midPointDistances.add(null);
 					triangleIndex++;
-					findLineNums(currentLine, triangleIndex);
+					p.getTriangles3d().set(triangleIndex, currentTriangle);
+					try {
+						Thread.sleep(20);
+					}catch(Exception e){
+						
+					}
 				}
 				currentLineNum++;
 				
@@ -78,7 +98,7 @@ public class MeshReader {
 		
 	}
 	
-	public void findLineNums(String currentLine, int triangleIndex) {
+	public void findLineNums(String currentLine) {
 		//Specifies if the current character/upcoming character being read is a UV or a default coordinate
 		boolean uvChar = false;
 		//Specifies the current vertex (0, 1, 2), for indexing purposes
@@ -89,12 +109,12 @@ public class MeshReader {
 		
 		for(int i = faceStartChar; i < currentLine.length(); i++) {
 			if(currentLine.charAt(i) == ' ') {
-				readUV(Integer.valueOf(currentUvLineNum.toString()), uvIndex, triangleIndex);
+				readUV(Integer.valueOf(currentUvLineNum.toString()), uvIndex);
 				currentUvLineNum = new StringBuilder("");
 				uvIndex++;
 				uvChar = false;
 			}else if(currentLine.charAt(i) == '/') {
-				readVertex(Integer.valueOf(currentVertexLineNum.toString()), vertexIndex, triangleIndex);
+				readVertex(Integer.valueOf(currentVertexLineNum.toString()), vertexIndex);
 				currentVertexLineNum = new StringBuilder("");
 				vertexIndex++;
 				uvChar = true;
@@ -109,25 +129,26 @@ public class MeshReader {
 		
 	}
 	
-	public void readUV(int uvLineNum, int uvIndex, int triangleIndex) {
+	public void readUV(int uvLineNum, int uvIndex) {
 		
 	}
 	
-	public void readVertex(int vertexLineNum, int vertexIndex, int triangleIndex) {
+	public void readVertex(int vertexLineNum, int vertexIndex) {
 		//Specifies the current dimension (0, 1, 2 / x , y, z), for indexing purposes
 		int dimensionIndex = 0;
 		//Wavefront files have the lines start at 1, so we need to compensate for Java starting at 0.
 		vertexLineNum -= 1;
 		/*This is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 		 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
-		 * added to triangles3d, unless we manually add a space.
+		 * added to getTriangles3d(), unless we manually add a space.
 		 */
 		String currentLine = wholeText.get(vertexLineNum) + " ";
+		//TODO Technically only one dimension of a vertex, so might want to change
 		StringBuilder currentVertex = new StringBuilder("");
 		
 		for(int i = vertexStartChar; i < currentLine.length(); i++) {
 			if(currentLine.charAt(i) == ' ') {
-				p.triangles3d.get(triangleIndex)[vertexIndex][dimensionIndex] = Double.valueOf(currentVertex.toString());
+				currentTriangle[vertexIndex][dimensionIndex] = Double.valueOf(currentVertex.toString());
 				currentVertex = new StringBuilder("");
 				dimensionIndex++;
 			}else {
