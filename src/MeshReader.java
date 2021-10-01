@@ -79,23 +79,39 @@ public class MeshReader {
 					 * must already be set, which is done by calling the findLineNums function, meaning it must be 
 					 * called first.
 					 */
-					p.getTriangles3d().add(new Double[3][3]);
-					p.triangles2d.add(new Double[3][2]);
-					p.triangleMidPoints.add(new Double[3]);
-					p.midPointDistances.add(null);
+					initNewArrayListElements();
 					triangleIndex++;
 					p.getTriangles3d().set(triangleIndex, currentTriangle);
-					try {
-						Thread.sleep(20);
-					}catch(Exception e){
-						
-					}
+					setNewArrayListElements();
+					/*
+					 * try { Thread.sleep(20); }catch(Exception e){
+					 * 
+					 * }
+					 */
 				}
 				currentLineNum++;
 				
 			}
 		}
 		
+	}
+
+	public void initNewArrayListElements() {
+		Double[] point2d;
+		
+		p.getTriangles3d().add(new Double[3][3]);
+		p.triangles2d.add(new Double[3][2]);
+		p.triangleMidPoints.add(new Double[3]);
+		p.midPointDistances.add(null);
+		
+	}
+	
+	public void setNewArrayListElements() {
+		//TODO Create function to calculate these for a single point, instead of calling a function to calculate all
+		p.projectAll();
+		p.calculateTriangleMidPoints();
+		p.calculateMidPointDistances();
+				
 	}
 	
 	public void findLineNums(String currentLine) {

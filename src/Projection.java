@@ -84,7 +84,7 @@ public class Projection extends Display{
 		for(int a = 0; a < getTriangles3d().size(); a++) {
 			for(int b = 0; b < 3; b++) {
 				point2d = projectPoint(rotatePoint(getTriangles3d().get(a)[b], -viewerAngle[0], -viewerAngle[1]));
-				
+					
 				triangles2d.get(a)[b][0] = point2d[0];
 				triangles2d.get(a)[b][1] = point2d[1];
 			}
@@ -123,6 +123,54 @@ public class Projection extends Display{
 			distance = rotatedPoint3d[1] - viewerPos[1];
 			midPointDistances.set(i, distance);
 		}
+	}
+	
+	/*
+	 * Sorts the triangles3d list, the triangleMidPoints list, and the midPointDistances list, based on the midPointDistances
+	 * list. We do not need to sort the triangles2d list, because we will re-project the triangles each time, and we do
+	 * so in the order of the already ordered triangles3d list. We cannot calculate triangleMidPoints and midPointDistances
+	 * afterwards, because we need updated information from these lists to be able to sort. Therefore, we have to calculate
+	 * these lists beforehand, and then sort them along with triangles3d.
+	 */
+	public void sortLists() {
+		//The integer i is the index of the double we are currently sorting.
+		for (int i = 1; i < midPointDistances.size(); ++i) {
+			//The key is the double we are currently sorting.
+			double key = midPointDistances.get(i);
+			/*
+			 * These are the keys of the elements we are sorting in the other lists. We do not need these to compare
+			 * values, but we must store this information, because in the list it will be overwritten when we move
+			 * each element to the right.
+			 */
+			Double[][] key2 = triangles3d.get(i);
+			Double[] key3 = triangleMidPoints.get(i);
+			//The index of the variable we compare our key to.
+			int a = i - 1;
+			
+			/*
+			 * Here, we move backwards, starting from the index of the double we are sorting. We stop if the index is less
+			 * than 0, or if the double that we are checking is less than our key. 			 
+			 */
+			while (a >= 0 && midPointDistances.get(a) < key) {
+				//Starting at the element to the left of double we are sorting, we move the element to the right
+				midPointDistances.set(a + 1, midPointDistances.get(a));
+				triangles3d.set(a + 1, triangles3d.get(a));
+				triangleMidPoints.set(a + 1, triangleMidPoints.get(a));
+				a--;
+			}
+			
+			/*
+			 * We stopped the while loop when we found the FIRST element that our key was smaller than. Our 'a' value 
+			 * represents the index of this first element, because we decreased the value of a on the previous iteration
+			 * of the while loop. Therefore, we want the element we are sorting to be to the
+			 * right of the first smaller element, which will be a + 1. We do not have to worry about overwriting the 
+			 * element at a + 1, because we already moved it to the right in the previous iteration of the while loop.
+			 */
+			midPointDistances.set(a + 1, key);
+			triangles3d.set(a + 1, key2);
+			triangleMidPoints.set(a + 1, key3);
+		}
+
 	}
 	
 }
