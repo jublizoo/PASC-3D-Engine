@@ -173,4 +173,28 @@ public class Projection extends Display{
 
 	}
 	
+	/*
+	 * This function mostly involves vector math that I do not understand. Therefore, the calculations used to set the
+	 * final vector will most likely not make sense. The calculations to set vectors one and two are just subtracting
+	 * the points on each side that we use.
+	 */
+	public Double[] calculateVector(Double[][] triangle) {
+		//The final vector coordinates
+		Double[] vectorFinal = new Double[3];
+		Double[] side1 = new Double[3];
+		Double[] side2 = new Double[3];
+		
+		//The vectors of the two sides. Vector one is vertex two minus vertex one. Vector two is vertex three minus vertex one
+		for(int i = 0; i < 3; i++) {
+			side1[i] = triangle[1][i] - triangle[0][i];
+			side2[i] = triangle[2][i] - triangle[0][i];
+		}
+		
+		vectorFinal[0] = side1[1] * side2[2] - side1[2] - side2[1];
+		vectorFinal[1] = side1[2] * side2[0] - side1[0] - side2[2];
+		vectorFinal[2] = side1[0] * side2[1] - side1[1] - side2[0];
+		
+		return vectorFinal;
+	}
+	
 }

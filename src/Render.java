@@ -23,6 +23,8 @@ public class Render extends JPanel {
 		g2d.fillRect((int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight);
 		g2d.setColor(Color.BLACK);
 		drawTriangles(g2d);
+		//drawPoints(g2d);
+		
 	}
 	
 	//TODO Check if each point is within the inner window
@@ -55,17 +57,20 @@ public class Render extends JPanel {
 		p.projectAll();
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
-			if(p.midPointDistances.get(a) > 1) {
+			
+			if(p.midPointDistances.get(a) > 0) {
 				//random = (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
 				//random = (int) Math.round(255 * Math.random());
-				//random = (int) Math.round(127 + 127 * Math.sin(p.midPointDistances.get(a) * 1000));
+				//random = (int) Math.round(127 + 127 * Math.sin(p.midPointDistances.get(a) * 10));
+				//c = new Color(random, random, random);
+				
 				try {
 					random = 3 * (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
 					c = new Color(random, random, random);
-				} catch(Exception e) {
-					random = (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
-					c = new Color(random, random, random);
+				} catch (Exception e) {
+					c = new Color(255, 255, 255);
 				}
+				
 				g2d.setColor(c);
 				Path2D.Double triangle = new Path2D.Double();
 				triangle.moveTo(p.triangles2d.get(a)[0][0], p.triangles2d.get(a)[0][1]);
