@@ -190,11 +190,24 @@ public class Projection extends Display{
 			side2[i] = triangle[2][i] - triangle[0][i];
 		}
 		
-		vectorFinal[0] = side1[1] * side2[2] - side1[2] - side2[1];
-		vectorFinal[1] = side1[2] * side2[0] - side1[0] - side2[2];
-		vectorFinal[2] = side1[0] * side2[1] - side1[1] - side2[0];
+		vectorFinal[0] = side1[1] * side2[2] - side1[2] * side2[1];
+		vectorFinal[1] = side1[2] * side2[0] - side1[0] * side2[2];
+		vectorFinal[2] = side1[0] * side2[1] - side1[1] * side2[0];
 		
 		return vectorFinal;
 	}
 	
+	public Double calculateVectorAngle(Double[] vector1, Double[] vector2) {
+		//arccos[(xa * xb + ya * yb + za * zb) / (dqrt(xa2 + ya2 + za2) * sqrt(xb2 + yb2 + zb2))]
+		Double ax = vector1[0];
+		Double ay = vector1[1];
+		Double az = vector1[2];
+		Double bx = vector2[0];
+		Double by = vector2[1];
+		Double bz = vector2[2];
+		
+		Double angle  = Math.acos((ax * bx + ay * by + az * bz) / (Math.sqrt(Math.pow(ax, 2) + Math.pow(ay, 2) + Math.pow(az, 2))) * Math.sqrt(Math.pow(bx, 2) + Math.pow(by, 2) + Math.pow(bz, 2)));
+		
+		return angle;
+	}
 }

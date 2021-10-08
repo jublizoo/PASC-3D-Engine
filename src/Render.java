@@ -57,8 +57,10 @@ public class Render extends JPanel {
 		p.projectAll();
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
+			Double[] viewerVector = {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
+			Double[] triangleVector = p.calculateVector(p.getTriangles3d().get(a));
 			
-			if(p.midPointDistances.get(a) > 0) {
+			if(p.midPointDistances.get(a) > 0 && Math.abs(p.calculateVectorAngle(triangleVector, viewerVector)) > Math.PI / 2) {
 				//random = (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
 				//random = (int) Math.round(255 * Math.random());
 				//random = (int) Math.round(127 + 127 * Math.sin(p.midPointDistances.get(a) * 10));
@@ -72,15 +74,17 @@ public class Render extends JPanel {
 				}
 				
 				g2d.setColor(c);
+				
 				Path2D.Double triangle = new Path2D.Double();
 				triangle.moveTo(p.triangles2d.get(a)[0][0], p.triangles2d.get(a)[0][1]);
 				triangle.lineTo(p.triangles2d.get(a)[1][0], p.triangles2d.get(a)[1][1]);
 				triangle.lineTo(p.triangles2d.get(a)[2][0], p.triangles2d.get(a)[2][1]);
 				triangle.closePath();
 				g2d.fill(triangle);
+				
 			}
 		}
 				
 	}
-	
+
 }

@@ -48,7 +48,6 @@ public class Main implements ActionListener {
 		render.p.viewerAngle[1] += in.angleChange[1];
 		render.repaint();
 		
-
 	}
 	
 }
