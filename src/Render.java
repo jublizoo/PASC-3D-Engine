@@ -51,27 +51,39 @@ public class Render extends JPanel {
 	public void drawTriangles(Graphics2D g2d) {
 		int random;
 		Color c;
+		//The direction of the viewer
+		Double[] viewerVector;
+		//The surface normal of a given triangle
+		Double[] triangleVector;
+		//The vector starting at the viewer, going to the midpoint of a given triangle.
+		Double[] viewerToTriangleVector;
+		//Angle between the direction of a certain vector (usually a light), and the direction of a given triangle
+		Double angle;
+		/*
+		 * This angle is between the direction a triangle is facing, and the vector starting at the viewer,
+		 * going to the midpoint of this triangle. It is used for backface culling. We cannot use our first 
+		 * angle for back face culling, because it results in faces that you should be able to see, but are
+		 * not rendered. Imagine your rotate the camera to face the triangle. In the case of the first angle
+		 * calculation, the angle would change. This should not happen, because rotating the camera should
+		 * not change what faces are displayed.
+		 */
+		Double angle2;
+		int lightLevel;
 		p.calculateTriangleMidPoints();
 		p.calculateMidPointDistances();
 		p.sortLists();
 		p.projectAll();
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
-			Double[] viewerVector = {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
-			Double[] triangleVector = p.calculateVector(p.getTriangles3d().get(a));
+			viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
+			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
+			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
+			angle = p.calculateVectorAngle(triangleVector, viewerVector);
+			angle2 = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			
-			if(p.midPointDistances.get(a) > 0 && Math.abs(p.calculateVectorAngle(triangleVector, viewerVector)) > Math.PI / 2) {
-				//random = (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
-				//random = (int) Math.round(255 * Math.random());
-				//random = (int) Math.round(127 + 127 * Math.sin(p.midPointDistances.get(a) * 10));
-				//c = new Color(random, random, random);
-				
-				try {
-					random = 3 * (int) Math.round(255.0 / (p.midPointDistances.get(a) + 1));
-					c = new Color(random, random, random);
-				} catch (Exception e) {
-					c = new Color(255, 255, 255);
-				}
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
+				lightLevel = calculateLight(angle);
+				c = new Color(lightLevel, lightLevel, lightLevel);
 				
 				g2d.setColor(c);
 				
@@ -81,10 +93,15 @@ public class Render extends JPanel {
 				triangle.lineTo(p.triangles2d.get(a)[2][0], p.triangles2d.get(a)[2][1]);
 				triangle.closePath();
 				g2d.fill(triangle);
-				
 			}
 		}
 				
+	}
+	
+	public int calculateLight(Double angle) {
+		int lightLevel = (int) Math.round(255 * ((angle / Math.PI)));
+		return lightLevel;
+		
 	}
 
 }

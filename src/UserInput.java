@@ -33,14 +33,6 @@ public class UserInput extends Thread implements KeyListener{
 		while(true) {
 			textInput = scan.nextLine();
 			reader.readFile(textInput);
-			for(int a = 0; a < p.getTriangles3d().size(); a++) {
-				for(int b = 0; b < 3; b++) {
-					for(int c = 0; c < 3; c++) {
-						System.out.println(p.getTriangles3d().get(a)[b][c]);
-					}
-				}
-			}
-			System.out.println(p.objIndexes.get(p.objIndexes.size() - 1)[0] + ", " + p.objIndexes.get(p.objIndexes.size() - 1)[1]);
 		}
 		
 	}
