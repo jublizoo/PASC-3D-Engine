@@ -15,16 +15,23 @@ public class Main implements ActionListener {
 	String fileName;
 	
 	boolean cont = true;
-	
+	boolean addFile = false;
 	
 	public Main() {
 		timer = new Timer(10, this);
 		render = new Render();
 		reader = new MeshReader(render.p);
-		in = new UserInput(render.p, reader);
+		reader.readFile("capybara.obj");
+		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
+			for(int b = 0; b < 3; b++) {
+				System.out.println(render.p.triangleUvs.get(i)[b][0] + ", " + render.p.triangleUvs.get(i)[b][1]);
+			}
+		}
+		in = new UserInput(render.p, this);
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(500, 500);
+		frame.setTitle("3D Display");
 		frame.setVisible(true);
 		frame.add(render);
 		frame.addKeyListener(in);
@@ -39,6 +46,10 @@ public class Main implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
+		if(addFile) {
+			reader.readFile(fileName);
+			addFile = false;
+		}
 		render.p.setDisplayDimensions(frame.getContentPane().getWidth(), frame.getContentPane().getHeight());
 		render.p.resetParameters();
 		in.updatePosChange();

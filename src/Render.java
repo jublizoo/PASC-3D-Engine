@@ -64,8 +64,8 @@ public class Render extends JPanel {
 		 * going to the midpoint of this triangle. It is used for backface culling. We cannot use our first 
 		 * angle for back face culling, because it results in faces that you should be able to see, but are
 		 * not rendered. Imagine your rotate the camera to face the triangle. In the case of the first angle
-		 * calculation, the angle would change. This should not happen, because rotating the camera should
-		 * not change what faces are displayed.
+		 * calculation, the angle would change, which could affect if the triangle is displayed. This should
+		 * not happen, because rotating the camera should not change what faces are displayed.
 		 */
 		Double angle2;
 		int lightLevel;
@@ -91,7 +91,7 @@ public class Render extends JPanel {
 				triangle.moveTo(p.triangles2d.get(a)[0][0], p.triangles2d.get(a)[0][1]);
 				triangle.lineTo(p.triangles2d.get(a)[1][0], p.triangles2d.get(a)[1][1]);
 				triangle.lineTo(p.triangles2d.get(a)[2][0], p.triangles2d.get(a)[2][1]);
-				triangle.closePath();
+				triangle.closePath(); 
 				g2d.fill(triangle);
 			}
 		}

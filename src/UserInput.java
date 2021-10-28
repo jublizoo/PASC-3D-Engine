@@ -5,7 +5,7 @@ import java.util.Scanner;
 public class UserInput extends Thread implements KeyListener{
 	//These values are passed in the constructor, and reference the object created in Main. We need these to change variables
 	Projection p;
-	MeshReader reader;
+	Main m;
 	Scanner scan;
 	String textInput;
 	//These variables determine how much the position and angle of the viewer change each tick.
@@ -22,9 +22,9 @@ public class UserInput extends Thread implements KeyListener{
 	//Direction the player is moving
 	String currentDirection = "";
 	
-	public UserInput(Projection p, MeshReader reader) {
+	public UserInput(Projection p, Main m) {
 		this.p = p;
-		this.reader = reader;
+		this.m = m;
 		scan = new Scanner(System.in);
 		
 	}
@@ -32,7 +32,8 @@ public class UserInput extends Thread implements KeyListener{
 	public void run() {
 		while(true) {
 			textInput = scan.nextLine();
-			reader.readFile(textInput);
+			m.fileName = textInput;
+			m.addFile = true;
 		}
 		
 	}

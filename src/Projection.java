@@ -29,6 +29,7 @@ public class Projection extends Display{
 	ArrayList<Double[]> triangleMidPoints = new ArrayList<Double[]>();
 	ArrayList<Double> midPointDistances = new ArrayList<Double>(); 
 	ArrayList<Double[][]> triangles2d = new ArrayList<Double[][]>();
+	ArrayList<Double[][]> triangleUvs = new ArrayList<Double[][]>();
 	/*
 	 * This stores the start and end index of each object within the getTriangles3d() array. Each element of the ArrayList
 	 * represents a different object. Each Double[] stores the index of the first triangle of the object in the 
@@ -190,6 +191,7 @@ public class Projection extends Display{
 			side2[i] = triangle[2][i] - triangle[0][i];
 		}
 		
+		//Cross product
 		vectorFinal[0] = side1[1] * side2[2] - side1[2] * side2[1];
 		vectorFinal[1] = side1[2] * side2[0] - side1[0] * side2[2];
 		vectorFinal[2] = side1[0] * side2[1] - side1[1] * side2[0];
