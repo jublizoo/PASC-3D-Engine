@@ -13,6 +13,7 @@ public class Main implements ActionListener {
 	JFrame frame;
 	MeshReader reader;
 	String fileName;
+	Texture tex;
 	
 	boolean cont = true;
 	boolean addFile = false;
@@ -21,6 +22,7 @@ public class Main implements ActionListener {
 		timer = new Timer(10, this);
 		render = new Render();
 		reader = new MeshReader(render.p);
+		tex = new Texture();
 		reader.readFile("capybara.obj");
 		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
 			for(int b = 0; b < 3; b++) {
