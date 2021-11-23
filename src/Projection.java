@@ -60,20 +60,22 @@ public class Projection extends Display{
 	//TODO Rewrite this math, and rename variables.
 	public Double[] rotatePoint(Double[] startPoint, double angleX, double angleY) {
 		Double[] relativePoint = new Double[] { startPoint[0] - viewerPos[0], startPoint[1] - viewerPos[1], startPoint[2] - viewerPos[2] };
-		Double[] rotatedPoint = new Double[] { 0.0, 0.0, 0.0 };
-		Double[] finalPoint = new Double[] { 0.0, 0.0, 0.0 };
+		Double[] rotation1 = new Double[] { 0.0, 0.0, 0.0 };
+		Double[] rotation2 = new Double[] { 0.0, 0.0, 0.0 };
 
-		rotatedPoint[0] = relativePoint[0] * Math.cos(angleX) - relativePoint[1] * Math.sin(angleX);
-		rotatedPoint[1] = relativePoint[0] * Math.sin(angleX) + relativePoint[1] * Math.cos(angleX);
-		rotatedPoint[2] = startPoint[2];
+		rotation1[0] = relativePoint[0] * Math.cos(angleX) - relativePoint[1] * Math.sin(angleX);
+		rotation1[1] = relativePoint[0] * Math.sin(angleX) + relativePoint[1] * Math.cos(angleX);
+		rotation1[2] = startPoint[2];
 
-		finalPoint[1] = rotatedPoint[1] * Math.cos(angleY) - rotatedPoint[2] * Math.sin(angleY) - relativePoint[1]
-				+ startPoint[1];
-		finalPoint[2] = rotatedPoint[1] * Math.sin(angleY) + rotatedPoint[2] * Math.cos(angleY) - relativePoint[2]
-				+ startPoint[2];
-		finalPoint[0] = rotatedPoint[0] - relativePoint[0] + startPoint[0];
-
-		return (new Double[] { finalPoint[0], finalPoint[1], finalPoint[2] });
+		rotation2[1] = rotation1[1] * Math.cos(angleY) - rotation1[2] * Math.sin(angleY);
+		rotation2[2] = rotation1[1] * Math.sin(angleY) + rotation1[2] * Math.cos(angleY);
+		rotation2[0] = rotation1[0];
+		
+		for(int i = 0; i < 3; i++) {
+			rotation2[i] += startPoint[i] - relativePoint[i];
+		}
+		
+		return (new Double[] { rotation2[0], rotation2[1], rotation2[2] });
 	}
 	
 	//TODO Replace get() expression with set() function

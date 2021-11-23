@@ -95,6 +95,7 @@ public class MeshReader {
 					 * }
 					 */
 				}else if(currentLine.charAt(1) == 't' && uvStartLine == null) {
+					//This will run before we get to the faces
 					uvStartLine = currentLineNum;
 				}
 				currentLineNum++;
@@ -119,7 +120,7 @@ public class MeshReader {
 		p.projectAll();
 		p.calculateTriangleMidPoints();
 		p.calculateMidPointDistances();
-				
+		//Add uv projection
 	}
 	
 	public void findLineNums(String currentLine) {
