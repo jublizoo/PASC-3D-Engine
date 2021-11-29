@@ -39,6 +39,8 @@ public class Main implements ActionListener {
 		frame.addKeyListener(in);
 		timer.start();
 		in.start();
+		Double[] coord = tex.calculateBaryCoords(new Double[][] {{0.0, 0.0}, {0.5, 0.866}, {1.0, 0.0}}, new Double[] {0.5, 0.289});
+		System.out.println(coord[0] + ", " + coord[1] + ", " + coord[2]);
 	}
 	
 	public static void main(String[] args) {

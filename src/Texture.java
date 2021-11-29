@@ -19,16 +19,55 @@ public class Texture {
 		//We now have the baryCoords for the 3d triangle, but we will use them on the uv coords
 	}
 	
-	public void calculateBaryCoords(Double[][] triangle, Double[] point) {
+	public Double[]  calculateBaryCoords(Double[][] triangle, Double[] point) {
+		//The sub triangle opposite the corresponding points
+		Double[][] currentTriangle = new Double[3][2];
+		//The index of points 1 and 2 of each sub triangle (the third point is the point within the larger triangle)
+		int p1;
+		int p2;
+		//The areas of the sub triangles opposite the corresponding points
+		Double[] areas = new Double[3];
+		double totalArea = 0;
+		Double[] baryCoords = new Double[3];
+		
+		//Calculating the area of each sub triangle.
 		for(int i = 0; i < 3; i++) {
+			//Setting p1 and p2 to the "opposite" point on the triangle
+			p1 = i + 1;
+			p2 = i + 2;
 			
+			//Looping back around
+			if(p1 >= 3) {
+				p1 -= 3;
+			}
+			if(p2 >= 3) {
+				p2 -= 3;
+			}
+			
+			currentTriangle[0] = triangle[p1];
+			currentTriangle[1] = triangle[p2];
+			currentTriangle[2] = point;
+			
+			areas[i] = calculateArea(currentTriangle);
 		}
+		
+		//Summing totalArea
+		for(int i = 0; i < 3; i++) {
+			totalArea += areas[i];
+		}
+		
+		//Calculating the final baryentric coordinate values
+		for(int i = 0; i < 3; i++) {
+			baryCoords[i] = areas[i] / totalArea;
+		}
+		
+		return baryCoords;
 	}
 	
 	public double calculateArea(Double[][] triangle) {
-		double area = Math.abs(triangle[0][0] * (triangle[1][1] - triangle[2][1]) +
-							triangle[1][0] * (triangle[2][1] - triangle[0][1]) + 
-							triangle[2][0] * (triangle[0][1] - triangle[1][1]));
+		double area = 0.5 * Math.abs(triangle[0][0] * (triangle[1][1] - triangle[2][1]) +
+								triangle[1][0] * (triangle[2][1] - triangle[0][1]) + 
+								triangle[2][0] * (triangle[0][1] - triangle[1][1]));
 		return area;
 	}
 	
