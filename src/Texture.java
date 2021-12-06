@@ -47,7 +47,7 @@ public class Texture {
 			currentTriangle[0] = triangle[p1];
 			currentTriangle[1] = triangle[p2];
 			currentTriangle[2] = point;
-			
+		
 			areas[i] = calculateArea(currentTriangle);
 		}
 		
@@ -71,7 +71,7 @@ public class Texture {
 		return area;
 	}
 	
-	public Double[] interpolateCoords(Double[][] triangle, Double[] baryCoords) {
+	public Double[] interpolateCoords(Double[][] triangle, Double[] baryCoords, Double[][] texCoords) {
 		//The y coordinate of our point
 		double y;
 		//The final uv coordinates
@@ -91,14 +91,14 @@ public class Texture {
 				baryCoords[1] / triangle[1][1] + 
 				baryCoords[2] / triangle[2][1]);
 		
-		//y * ( v1.x / v1.y ) * b1 + ( v2.x / v2.y ) * b2 + ( v3.x / v3.y ) * b3
-		u = y * (triangle[0][0] * baryCoords[0] / triangle[0][1] + 
-				triangle[1][0] * baryCoords[1] / triangle[1][1] + 
-				triangle[2][0] * baryCoords[2] / triangle[2][1]);
-		//y * ( v1.z / v1.y ) * b1 + ( v2.z / v2.y ) * b2 + ( v3.z / v3.y ) * b3
-		v = y * (triangle[1][2] * baryCoords[0] / triangle[0][1] + 
-				triangle[1][2] * baryCoords[1] / triangle[1][1] + 
-				triangle[2][2] * baryCoords[2] / triangle[2][1]);
+		//y * (( t.x / v1.y ) * b1 + ( t2.x / v2.y ) * b2 + ( t3.x / v3.y ) * b3)
+		u = y * (texCoords[0][0] * baryCoords[0] / triangle[0][1] + 
+				texCoords[1][0] * baryCoords[1] / triangle[1][1] + 
+				texCoords[2][0] * baryCoords[2] / triangle[2][1]);
+		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
+		v = y * (texCoords[1][2] * baryCoords[0] / triangle[0][1] + 
+				texCoords[1][2] * baryCoords[1] / triangle[1][1] + 
+				texCoords[2][2] * baryCoords[2] / triangle[2][1]);
 		
 		uv = new Double[] {u, v};
 		return uv;

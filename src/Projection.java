@@ -72,7 +72,8 @@ public class Projection extends Display{
 		rotation2[0] = rotation1[0];
 		
 		for(int i = 0; i < 3; i++) {
-			/*Subtracting the relativePoint, to find the difference in position. The final point is also
+			/*
+			 * Subtracting the relativePoint, to find the difference in position. The final point is also
 			 * relative, but rotated, so we want to find the difference between the final relative point and
 			 * the initial relative point. Then, we  have the difference the rotation causes, which we add
 			 * to the start point to get the true final point.
