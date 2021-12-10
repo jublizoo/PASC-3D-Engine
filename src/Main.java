@@ -19,11 +19,11 @@ public class Main implements ActionListener {
 	boolean addFile = false;
 	
 	public Main() {
-		timer = new Timer(10, this);
-		render = new Render();
+		timer = new Timer(20, this);
+		render = new Render(this);
 		reader = new MeshReader(render.p);
 		tex = new Texture();
-		reader.readFile("capybara.obj");
+		reader.readFile("ico.obj");
 		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
 			for(int b = 0; b < 3; b++) {
 				System.out.println(render.p.triangleUvs.get(i)[b][0] + ", " + render.p.triangleUvs.get(i)[b][1]);
@@ -39,8 +39,7 @@ public class Main implements ActionListener {
 		frame.addKeyListener(in);
 		timer.start();
 		in.start();
-		Double[] coord = tex.calculateBaryCoords(new Double[][] {{0.0, 0.0}, {0.5, 0.866}, {1.0, 0.0}}, new Double[] {0.5, 0.289});
-		System.out.println(coord[0] + ", " + coord[1] + ", " + coord[2]);
+		
 	}
 	
 	public static void main(String[] args) {

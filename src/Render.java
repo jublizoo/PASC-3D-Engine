@@ -2,16 +2,24 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 public class Render extends JPanel {
 	
 	Projection p;
+	Main m;
+	
+	BufferedImage image;
 
-	public Render() {
+	public Render(Main m) {
 		p = new Projection();
-
+		this.m = m;
+		loadImages();
 	}
 
 	protected void paintComponent(Graphics g) {
@@ -22,9 +30,15 @@ public class Render extends JPanel {
 		g2d.setColor(Color.LIGHT_GRAY);
 		g2d.fillRect((int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight);
 		g2d.setColor(Color.BLACK);
-		drawTriangles(g2d);
+		//drawTriangles(g2d);
 		//drawPoints(g2d);
-		
+		textureTriangles(g2d);
+	}
+	
+	public void loadImages() {
+		try {
+			image = ImageIO.read(new File("tex.png"));
+		} catch (IOException e) {}
 	}
 	
 	//TODO Check if each point is within the inner window
@@ -47,6 +61,153 @@ public class Render extends JPanel {
 		}
 				
 	}
+	
+	public void textureTriangles(Graphics2D g2d) {
+		//The surface normal of a given triangle
+		Double[] triangleVector;
+		//The vector starting at the viewer, going to the midpoint of a given triangle.
+		Double[] viewerToTriangleVector;
+		Double angle;
+		p.calculateTriangleMidPoints();
+		p.calculateMidPointDistances();
+		p.sortLists();
+		p.projectAll();
+		
+		for(int a = 0; a < p.triangles2d.size(); a++) {
+			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
+			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
+			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
+			
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
+				traverse(p.triangles2d.get(a), g2d, a);
+			}
+		}
+	}
+	
+	public void traverse(Double[][] triangle, Graphics2D g2d, int triangleNum) {	
+		Double[] temp;
+		
+		Integer[] p1 = new Integer[2];
+		Integer[] p2 = new Integer[2];
+		Integer[] p3 = new Integer[2];
+		
+		//Slope from points 1 - 2
+		double m1;
+		//Slope from points 1 - 3
+		double m2;
+		//Slope from points 2 - 3
+		double m3;
+		
+		Double[] point;
+		Double[] triangleY = new Double[3];
+		Double[][] texCoords = p.triangleUvs.get(triangleNum);
+		Double[] uv;
+		
+		//The starting and ending x values for each triangle "slice" (startX was already taken)
+		int x1;
+		int x2;
+		
+		//If we increase or decrease x while moving across a slice of the triangle
+		int dx;
+		
+		for(int i = 0; i < 3; i++) {
+			triangleY[i] = p.rotatePoint(p.triangles3d.get(triangleNum)[i], -p.viewerAngle[0], -p.viewerAngle[1])[1];
+		}
+		
+		//Setting p1 to the largest y-value point
+		for(int i = 1; i < 3; i++) {
+			if(triangle[i][1] > triangle[0][1]) {
+				//Swap
+				temp = triangle[i];
+				triangle[i] = triangle[0];
+				triangle[0] = temp;
+			}
+		}
+		
+		//Setting p2 to the second largest y-value point
+		if(triangle[1][1] < triangle[2][1]) {
+			//Swap
+			temp = triangle[1];
+			triangle[1] = triangle[2];
+			triangle[2] = temp;
+		}
+		
+		p1[0] = (int) Math.round(triangle[0][0]);
+		p1[1] = (int) Math.round(triangle[0][1]);
+		p2[0] = (int) Math.round(triangle[1][0]);
+		p2[1] = (int) Math.round(triangle[1][1]);
+		p3[0] = (int) Math.round(triangle[2][0]);
+		p3[1] = (int) Math.round(triangle[2][1]);
+						
+		m1 = (double) (p2[1] - p1[1]) / (p2[0] - p1[0]);
+		m2 = (double) (p3[1] - p1[1]) / (p3[0] - p1[0]);
+		m3 = (double) (p3[1] - p2[1]) / (p3[0] - p2[0]);
+		
+		g2d.setColor(Color.BLACK);
+		
+		//Upper part of triangle, going from line 1 - 2;
+		for(int i = p1[1]; i > p2[1]; i--) {
+			x1 = (int) Math.round(p1[0] + (i - p1[1]) / m1);
+			x2 = (int) Math.round(p1[0] + (i - p1[1]) / m2);
+			
+			if(x1 > x2) {dx = -1;} else if(x1 < x2) {dx = 1;} else {dx = 0;}
+			
+			for(int b = x1; b > x2; b += dx) {
+				point = new Double[] {(double) b, (double) i};
+				uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(triangle, point), texCoords);
+				uv[0] *= image.getWidth();
+				uv[1] *= image.getHeight();
+				
+				if(uv[0] >= image.getWidth()) {
+					uv[0] = (double) (image.getWidth() - 1);
+				}else if(uv[0] <= 0) {
+					uv[0] = 1.0;
+				}
+				if(uv[1] >= image.getHeight()) {
+					uv[1] = (double) image.getHeight() - 1;
+					System.out.println("balls");
+				}else if(uv[1] <= 0) {
+					uv[1] = 1.0;
+				}
+				
+				System.out.println(uv[1] + ", " + image.getHeight());
+				
+				g2d.setColor(new Color(image.getRGB((int)(double) uv[0], (int)(double) uv[1])));
+				g2d.drawLine(b, i, b, i);
+			}
+		}
+		
+		//Lower part of triangle, going from line 3 - 2
+		for(int i = p2[1]; i >= p3[1]; i--) {
+			x1 = (int) Math.round(p2[0] + (i - p2[1]) / m3);
+			x2 = (int) Math.round(p1[0] + (i - p1[1]) / m2);
+			
+			if(x1 > x2) {dx = -1;} else if(x1 < x2) {dx = 1;} else {dx = 0;}
+			
+			for(int b = x1; b > x2; b += dx) {
+				point = new Double[] {(double) b, (double) i};
+				uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(triangle, point), texCoords);
+				uv[0] *= image.getWidth();
+				uv[1] *= image.getHeight();
+				
+				if(uv[0] >= image.getWidth()) {
+					uv[0] = (double) (image.getWidth() - 1);
+				}else if(uv[0] <= 0) {
+					uv[0] = 1.0;
+				}
+				if(uv[1] >= image.getHeight()) {
+					uv[1] = (double) image.getHeight() - 1;
+				}else if(uv[1] <= 0) {
+					uv[1] = 1.0;
+				}
+				
+				g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
+				g2d.drawLine(b, i, b, i);
+			}
+		}
+		
+	}
+	
 	
 	public void drawTriangles(Graphics2D g2d) {
 		int random;
