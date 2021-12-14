@@ -75,15 +75,15 @@ public class Render extends JPanel {
 		p.sortLists();
 		p.projectAll();
 		
-		for(int a = 0; a < p.triangles2d.size(); a++) {
+		//for(int a = 0; a < p.triangles2d.size(); a++) {
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
 			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
 			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			
-			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a);
-			//}
-		}
+			}
+		//}
 	}
 	
 	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum) {	
