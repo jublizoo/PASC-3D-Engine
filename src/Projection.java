@@ -153,6 +153,7 @@ public class Projection extends Display{
 			 */
 			Double[][] key2 = triangles3d.get(i);
 			Double[] key3 = triangleMidPoints.get(i);
+			Double[][] key4 = triangleUvs.get(i);
 			//The index of the variable we compare our key to.
 			int a = i - 1;
 			
@@ -165,6 +166,7 @@ public class Projection extends Display{
 				midPointDistances.set(a + 1, midPointDistances.get(a));
 				triangles3d.set(a + 1, triangles3d.get(a));
 				triangleMidPoints.set(a + 1, triangleMidPoints.get(a));
+				triangleUvs.set(a + 1, triangleUvs.get(a));
 				a--;
 			}
 			
@@ -178,6 +180,7 @@ public class Projection extends Display{
 			midPointDistances.set(a + 1, key);
 			triangles3d.set(a + 1, key2);
 			triangleMidPoints.set(a + 1, key3);
+			triangleUvs.set(a + 1, key4);
 		}
 
 	}

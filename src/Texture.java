@@ -78,7 +78,7 @@ public class Texture {
 		double u;
 		double v;
 		Double[] uv;
-		
+		//this is fax af
 		/*
 		 * Using the barycentric coordinates to find the z-coord. We use triangle[i][1], because we want to access
 		 * the y coordinate of our point. Normally this would be referred to as z or w, but we use a different 
@@ -96,7 +96,7 @@ public class Texture {
 				texCoords[1][0] * baryCoords[1] / triangleY[1] + 
 				texCoords[2][0] * baryCoords[2] / triangleY[2]);
 		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
-		v = y * (texCoords[1][1] * baryCoords[0] / triangleY[0] + 
+		v = y * (texCoords[0][1] * baryCoords[0] / triangleY[0] + 
 				texCoords[1][1] * baryCoords[1] / triangleY[1] + 
 				texCoords[2][1] * baryCoords[2] / triangleY[2]);
 		
