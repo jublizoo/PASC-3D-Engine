@@ -75,7 +75,7 @@ public class Render extends JPanel {
 		p.sortLists();
 		p.projectAll();
 		
-		//for(int a = 0; a < p.triangles2d.size(); a++) {
+		for(int a = 0; a < p.triangles2d.size(); a++) {
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
 			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
 			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
@@ -83,7 +83,7 @@ public class Render extends JPanel {
 			if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a);
 			}
-		//}
+		}
 	}
 	
 	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum) {	
@@ -172,7 +172,7 @@ public class Render extends JPanel {
 					}
 					
 					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.drawLine(b, i, b, i);
+					g2d.fillRect(b, i, 1, 1);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b < x2; b++) {
@@ -193,7 +193,7 @@ public class Render extends JPanel {
 					}
 					
 					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.drawLine(b, i, b, i);
+					g2d.fillRect(b, i, 1, 1);
 				}
 			} else {
 				point = new Double[] {(double) x1, (double) i};
@@ -213,7 +213,7 @@ public class Render extends JPanel {
 				}
 				
 				g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-				g2d.drawLine(x1, i, x1, i);
+				g2d.fillRect(x1, i, 1, 1);
 			}
 		}
 		
@@ -241,7 +241,7 @@ public class Render extends JPanel {
 					}
 					
 					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.drawLine(b, i, b, i);
+					g2d.fillRect(b, i, 1, 1);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b < x2; b++) {
@@ -262,7 +262,7 @@ public class Render extends JPanel {
 					}
 					
 					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.drawLine(b, i, b, i);
+					g2d.fillRect(b, i, 1, 1);
 				}
 			} else {
 				point = new Double[] {(double) x1, (double) i};
@@ -282,7 +282,7 @@ public class Render extends JPanel {
 				}
 				
 				g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-				g2d.drawLine(x1, i, x1, i);
+				g2d.fillRect(x1, i, 1, 1);
 			}
 		}
 		
