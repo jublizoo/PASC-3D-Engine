@@ -23,7 +23,7 @@ public class Main implements ActionListener {
 		render = new Render(this);
 		reader = new MeshReader(render.p);
 		tex = new Texture();
-		reader.readFile("cuboid.txt");
+		reader.readFile("cube.txt");
 		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
 			for(int b = 0; b < 3; b++) {
 				System.out.println(render.p.triangleUvs.get(i)[b][0] + ", " + render.p.triangleUvs.get(i)[b][1]);

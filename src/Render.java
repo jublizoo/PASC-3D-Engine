@@ -37,7 +37,7 @@ public class Render extends JPanel {
 	
 	public void loadImages() {
 		try {
-			image = ImageIO.read(new File("download.png"));
+			image = ImageIO.read(new File("tex.png"));
 		} catch (IOException e) {}
 	}
 	
@@ -80,9 +80,9 @@ public class Render extends JPanel {
 			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
 			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			
-			if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
+			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a);
-			}
+			//}
 		}
 	}
 	
@@ -155,65 +155,12 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b > x2; b--) {
-					point = new Double[] {(double) b, (double) i};
-					uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-					uv[0] *= image.getWidth();
-					uv[1] *= image.getHeight();
-					
-					if(uv[0] >= image.getWidth()) {
-						uv[0] = (double) (image.getWidth() - 1);
-					}else if(uv[0] <= 0) {
-						uv[0] = 1.0;
-					}
-					if(uv[1] >= image.getHeight()) {
-						uv[1] = (double) image.getHeight() - 1;
-					}else if(uv[1] <= 0) {
-						uv[1] = 1.0;
-					}
-					
-					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.fillRect(b, i, 1, 1);
+					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b < x2; b++) {
-					point = new Double[] {(double) b, (double) i};
-					uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-					uv[0] *= image.getWidth();
-					uv[1] *= image.getHeight();
-					
-					if(uv[0] >= image.getWidth()) {
-						uv[0] = (double) (image.getWidth() - 1);
-					}else if(uv[0] <= 0) {
-						uv[0] = 1.0;
-					}
-					if(uv[1] >= image.getHeight()) {
-						uv[1] = (double) image.getHeight() - 1;
-					}else if(uv[1] <= 0) {
-						uv[1] = 1.0;
-					}
-					
-					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.fillRect(b, i, 1, 1);
+					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
 				}
-			} else {
-				point = new Double[] {(double) x1, (double) i};
-				uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-				uv[0] *= image.getWidth();
-				uv[1] *= image.getHeight();
-				
-				if(uv[0] >= image.getWidth()) {
-					uv[0] = (double) (image.getWidth() - 1);
-				}else if(uv[0] <= 0) {
-					uv[0] = 1.0;
-				}
-				if(uv[1] >= image.getHeight()) {
-					uv[1] = (double) image.getHeight() - 1;
-				}else if(uv[1] <= 0) {
-					uv[1] = 1.0;
-				}
-				
-				g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-				g2d.fillRect(x1, i, 1, 1);
 			}
 		}
 		
@@ -224,67 +171,40 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b > x2; b--) {
-					point = new Double[] {(double) b, (double) i};
-					uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-					uv[0] *= image.getWidth();
-					uv[1] *= image.getHeight();
-					
-					if(uv[0] >= image.getWidth()) {
-						uv[0] = (double) (image.getWidth() - 1);
-					}else if(uv[0] <= 0) {
-						uv[0] = 1.0;
-					}
-					if(uv[1] >= image.getHeight()) {
-						uv[1] = (double) image.getHeight() - 1;
-					}else if(uv[1] <= 0) {
-						uv[1] = 1.0;
-					}
-					
-					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.fillRect(b, i, 1, 1);
+					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b < x2; b++) {
-					point = new Double[] {(double) b, (double) i};
-					uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-					uv[0] *= image.getWidth();
-					uv[1] *= image.getHeight();
-					
-					if(uv[0] >= image.getWidth()) {
-						uv[0] = (double) (image.getWidth() - 1);
-					}else if(uv[0] <= 0) {
-						uv[0] = 1.0;
-					}
-					if(uv[1] >= image.getHeight()) {
-						uv[1] = (double) image.getHeight() - 1;
-					}else if(uv[1] <= 0) {
-						uv[1] = 1.0;
-					}
-					
-					g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-					g2d.fillRect(b, i, 1, 1);
+					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
 				}
-			} else {
-				point = new Double[] {(double) x1, (double) i};
-				uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-				uv[0] *= image.getWidth();
-				uv[1] *= image.getHeight();
-				
-				if(uv[0] >= image.getWidth()) {
-					uv[0] = (double) (image.getWidth() - 1);
-				}else if(uv[0] <= 0) {
-					uv[0] = 1.0;
-				}
-				if(uv[1] >= image.getHeight()) {
-					uv[1] = (double) image.getHeight() - 1;
-				}else if(uv[1] <= 0) {
-					uv[1] = 1.0;
-				}
-				
-				g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
-				g2d.fillRect(x1, i, 1, 1);
 			}
 		}
+		
+	}
+	
+	public void drawPoint(Graphics2D g2d, int x1, int x2, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords) {
+		int dx;
+		Double[] point;
+		Double[] uv;
+		point = new Double[] {(double) b, (double) i};
+		
+		uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
+		uv[0] *= image.getWidth();
+		uv[1] *= image.getHeight();
+		
+		if(uv[0] >= image.getWidth()) {
+			uv[0] = (double) (image.getWidth() - 1);
+		}else if(uv[0] <= 0) {
+			uv[0] = 1.0;
+		}
+		if(uv[1] >= image.getHeight()) {
+			uv[1] = (double) image.getHeight() - 1;
+		}else if(uv[1] <= 0) {
+			uv[1] = 1.0;
+		}
+		
+		g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
+		g2d.fillRect(b, i, 1, 1);
 		
 	}
 	
