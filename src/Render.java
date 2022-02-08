@@ -37,7 +37,7 @@ public class Render extends JPanel {
 	
 	public void loadImages() {
 		try {
-			image = ImageIO.read(new File("tex.png"));
+			image = ImageIO.read(new File("download.png"));
 		} catch (IOException e) {}
 	}
 	
@@ -77,7 +77,7 @@ public class Render extends JPanel {
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
-			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
+			triangleVector = p.calculateVector(p.triangles3d.get(a));
 			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			
 			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
@@ -115,7 +115,8 @@ public class Render extends JPanel {
 		
 		for(int i = 0; i < 3; i++) {
 			triangleY[i] = p.rotatePoint(p.triangles3d.get(triangleNum)[i], -p.viewerAngle[0], -p.viewerAngle[1])[1];
-		}
+			//triangleY[i] = p.triangles3d.get(triangleNum)[i][1];
+		}	
 		
 		//Setting p1 to the largest y-value point
 		for(int i = 1; i < 3; i++) {
@@ -154,12 +155,12 @@ public class Render extends JPanel {
 			x2 = (int) Math.round(p1[0] + (i - p1[1]) / m2);
 			
 			if(x1 > x2) {
-				for(int b = x1; b > x2; b--) {
-					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
+				for(int b = x1; b >= x2; b--) {
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
 				}
 			} else if(x1 < x2) {
-				for(int b = x1; b < x2; b++) {
-					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
+				for(int b = x1; b <= x2; b++) {
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
 				}
 			}
 		}
@@ -170,24 +171,24 @@ public class Render extends JPanel {
 			x2 = (int) Math.round(p1[0] + (i - p1[1]) / m2);
 			
 			if(x1 > x2) {
-				for(int b = x1; b > x2; b--) {
-					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
+				for(int b = x1; b >= x2; b--) {
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
 				}
 			} else if(x1 < x2) {
-				for(int b = x1; b < x2; b++) {
-					drawPoint(g2d, x1, x2, i, b, originalTriangle, triangleY, texCoords);
+				for(int b = x1; b <= x2; b++) {
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
 				}
 			}
 		}
 		
 	}
 	
-	public void drawPoint(Graphics2D g2d, int x1, int x2, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords) {
+	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords) {
 		int dx;
 		Double[] point;
 		Double[] uv;
 		point = new Double[] {(double) b, (double) i};
-		
+	
 		uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
 		uv[0] *= image.getWidth();
 		uv[1] *= image.getHeight();
@@ -238,7 +239,7 @@ public class Render extends JPanel {
 		for(int a = 0; a < p.triangles2d.size(); a++) {
 			viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
-			triangleVector = p.calculateVector(p.getTriangles3d().get(a));
+			triangleVector = p.calculateVector(p.triangles3d.get(a));
 			angle = p.calculateVectorAngle(triangleVector, viewerVector);
 			angle2 = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			

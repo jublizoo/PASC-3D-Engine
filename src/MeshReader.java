@@ -36,7 +36,7 @@ public class MeshReader {
 		wholeText = new ArrayList<String>();
 		System.out.println("MeshReader running");
 		int currentLineNum = 0;
-		int triangleIndex = p.getTriangles3d().size() - 1;
+		int triangleIndex = p.triangles3d.size() - 1;
 		String currentLine = "";
 		
 		file = new File(url);
@@ -86,7 +86,7 @@ public class MeshReader {
 					 */
 					initNewArrayListElements();
 					triangleIndex++;
-					p.getTriangles3d().set(triangleIndex, currentTriangle);
+					p.triangles3d.set(triangleIndex, currentTriangle);
 					p.triangleUvs.set(triangleIndex, currentUv);
 					setNewArrayListElements();
 					/*
@@ -107,7 +107,7 @@ public class MeshReader {
 
 	public void initNewArrayListElements() {
 		Double[] point2d;
-		p.getTriangles3d().add(new Double[3][3]);
+		p.triangles3d.add(new Double[3][3]);
 		p.triangleUvs.add(new Double[3][2]);
 		p.triangles2d.add(new Double[3][2]);
 		p.triangleMidPoints.add(new Double[3]);
@@ -165,7 +165,7 @@ public class MeshReader {
 				/*
 				 * This " " is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 				 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
-				 * added to getTriangles3d(), unless we manually add a space.
+				 * added to triangles3d, unless we manually add a space.
 				 */
 				String currentLine = wholeText.get(uvLineNum) + " ";
 				//TODO Technically only one dimension of a vertex, so might want to change
@@ -189,7 +189,7 @@ public class MeshReader {
 		vertexLineNum -= 1;
 		/*This " " is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 		 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
-		 * added to getTriangles3d(), unless we manually add a space.
+		 * added to triangles3d, unless we manually add a space.
 		 */
 		String currentLine = wholeText.get(vertexLineNum) + " ";
 		//TODO Technically only one dimension of a vertex, so might want to change

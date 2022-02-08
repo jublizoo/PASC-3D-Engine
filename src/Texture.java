@@ -5,20 +5,6 @@ public class Texture {
 	//Stores all images, correlates with objects in Projection
 	ArrayList<BufferedImage> images = new ArrayList<BufferedImage>();
 	
-	public void cycleAllTriangles() {
-		
-	}
-	
-	public void cycleTriangleVerts() {
-		//Swap verts
-		//(two sections)
-		//left to right
-		//top to bottom
-		//find 2d baryCoords
-		//interpolateCoords using 2d baryCoords
-		//We now have the baryCoords for the 3d triangle, but we will use them on the uv coords
-	}
-	
 	public Double[]  calculateBaryCoords(Double[][] triangle, Double[] point) {
 		//The sub triangle opposite the corresponding points
 		Double[][] currentTriangle = new Double[3][2];
@@ -96,27 +82,19 @@ public class Texture {
 				texCoords[1][0] * baryCoords[1] / triangleY[1] + 
 				texCoords[2][0] * baryCoords[2] / triangleY[2]);
 		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
-		v = y * (texCoords[0][1] * baryCoords[0] / triangleY[0] + 
-				texCoords[1][1] * baryCoords[1] / triangleY[1] + 
-				texCoords[2][1] * baryCoords[2] / triangleY[2]);
-		
-		uv = new Double[] {u, v};
+		v = y * ((texCoords[0][1] * baryCoords[0] / triangleY[0]) + 
+				(texCoords[1][1] * baryCoords[1] / triangleY[1]) + 
+				(texCoords[2][1] * baryCoords[2] / triangleY[2]));
+		/*
+		u = (texCoords[0][0] * baryCoords[0] + 
+				texCoords[1][0] * baryCoords[1] + 
+				texCoords[2][0] * baryCoords[2]);
+		v = (texCoords[0][1] * baryCoords[0]  + 
+				texCoords[1][1] * baryCoords[1]  + 
+				texCoords[2][1] * baryCoords[2]);
+		*/
+		uv = new Double[] {v, u};
 		return uv;
 	}
 	
-	//% sideways, % down sides, triangle we interpolate to
-	public Double[] findTexCoord(Double t, Double v, Double[][] triangle2d) {
-		Double[] point1;
-		Double[] point2;
-		Double[] point3;
-		
-		point1 = new Double[] {triangle2d[0][0] + v * (triangle2d[1][0] - triangle2d[0][0]),
-								triangle2d[0][1] + v * (triangle2d[1][1] - triangle2d[0][1])};
-		point2 = new Double[] {triangle2d[0][0] + v * (triangle2d[2][0] - triangle2d[0][0]),
-				triangle2d[0][1] + v * (triangle2d[2][1] - triangle2d[0][1])};
-		point1 = new Double[] {point1[0] + t * (point2[0] - point1[0]),
-								point1[1] + t * (point2[1] - point1[1])};
-		return point1;
-	}
-	//c = new Color(image.getRGB(j, i));
 }
