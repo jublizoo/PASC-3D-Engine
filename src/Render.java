@@ -31,13 +31,13 @@ public class Render extends JPanel {
 		g2d.fillRect((int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight);
 		g2d.setColor(Color.BLACK);
 		//drawTriangles(g2d);
-		//drawPoints(g2d);
 		textureTriangles(g2d);
+		drawPoints(g2d);
 	}
 	
 	public void loadImages() {
 		try {
-			image = ImageIO.read(new File("download.png"));
+			image = ImageIO.read(new File("tex.png"));
 		} catch (IOException e) {}
 	}
 	
@@ -163,7 +163,7 @@ public class Render extends JPanel {
 		}
 		
 		//Lower part of triangle, going from line 3 - 2
-		for(int i = p2[1]; i >= p3[1]; i--) {
+		for(int i = p2[1]; i > p3[1]; i--) {
 			x1 = (int) Math.round(p2[0] + (i - p2[1]) / m3);
 			x2 = (int) Math.round(p1[0] + (i - p1[1]) / m2);
 			
