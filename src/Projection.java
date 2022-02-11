@@ -214,7 +214,7 @@ public class Projection extends Display{
 		Double by = vector2[1];
 		Double bz = vector2[2];
 		
-		Double angle  = Math.acos((ax * bx + ay * by + az * bz) / (Math.sqrt(Math.pow(ax, 2) + Math.pow(ay, 2) + Math.pow(az, 2))) * Math.sqrt(Math.pow(bx, 2) + Math.pow(by, 2) + Math.pow(bz, 2)));
+		Double angle  = Math.acos((ax * bx + ay * by + az * bz) / (Math.sqrt(Math.pow(ax, 2) + Math.pow(ay, 2) + Math.pow(az, 2)) * Math.sqrt(Math.pow(bx, 2) + Math.pow(by, 2) + Math.pow(bz, 2))));
 		
 		return angle;
 	}

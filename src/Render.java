@@ -32,7 +32,7 @@ public class Render extends JPanel {
 		g2d.setColor(Color.BLACK);
 		//drawTriangles(g2d);
 		textureTriangles(g2d);
-		drawPoints(g2d);
+		//drawPoints(g2d);
 	}
 	
 	public void loadImages() {
@@ -67,26 +67,29 @@ public class Render extends JPanel {
 	public void textureTriangles(Graphics2D g2d) {
 		//The surface normal of a given triangle
 		Double[] triangleVector;
-		//The vector starting at the viewer, going to the midpoint of a given triangle.
+		Double[] viewerVector;
 		Double[] viewerToTriangleVector;
 		Double angle;
+		Double angle2;
 		p.calculateTriangleMidPoints();
 		p.calculateMidPointDistances();
 		p.sortLists();
 		p.projectAll();
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
-			//viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
-			//triangleVector = p.calculateVector(p.triangles3d.get(a));
-			//angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
+			viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
+			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
+			triangleVector = p.calculateVector(p.triangles3d.get(a));
+			angle = p.calculateVectorAngle(triangleVector, viewerVector);
+			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
 			
-			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
-				traverse(p.triangles2d.get(a), g2d, a);
-			//}
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
+				traverse(p.triangles2d.get(a), g2d, a, angle);
+			}
 		}
 	}
 	
-	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum) {	
+	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	
 		Double[] temp;
 		
 		Integer[] p1 = new Integer[2];
@@ -110,11 +113,8 @@ public class Render extends JPanel {
 		
 		for(int i = 0; i < 3; i++) {
 			triangleY[i] = p.rotatePoint(p.triangles3d.get(triangleNum)[i], -p.viewerAngle[0], -p.viewerAngle[1])[1] - p.viewerPos[1];
-			//triangleY[i] = p.triangles3d.get(triangleNum)[i][1];
 		}	 
-		if(triangleNum ==0) {
-			System.out.println(triangleY[0] + ", " + triangleY[1] + ", " + triangleY[2]);
-		}
+
 		//Setting p1 to the largest y-value point
 		for(int i = 1; i < 3; i++) {
 			if(triangle[i][1] > triangle[0][1]) {
@@ -153,11 +153,11 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
 				}
 			}
 		}
@@ -169,18 +169,19 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords);
+					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
 				}
 			}
 		}
 		
 	}
 	
-	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords) {
+	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
+		int lightLevel;
 		Double[] point;
 		Double[] uv;
 		point = new Double[] {(double) b, (double) i};
@@ -200,6 +201,7 @@ public class Render extends JPanel {
 			uv[1] = 1.0;
 		}
 		
+		lightLevel = calculateLight(angle);
 		g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
 		g2d.fillRect(b, i, 1, 1);
 		
@@ -237,9 +239,11 @@ public class Render extends JPanel {
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
 			triangleVector = p.calculateVector(p.triangles3d.get(a));
 			angle = p.calculateVectorAngle(triangleVector, viewerVector);
-			angle2 = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
+			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
+			System.out.println(angle2);
+
 			
-			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) < Math.PI / 2) {
 				lightLevel = calculateLight(angle);
 				c = new Color(lightLevel, lightLevel, lightLevel);
 				
@@ -252,7 +256,7 @@ public class Render extends JPanel {
 				triangle.closePath(); 
 				g2d.fill(triangle);
 			}
-		//}
+		}
 				
 	}
 	
