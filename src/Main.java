@@ -23,7 +23,7 @@ public class Main implements ActionListener {
 		render = new Render(this);
 		reader = new MeshReader(render.p);
 		tex = new Texture();
-		reader.readFile("cube.txt");
+		reader.readFile("capybara.txt");
 		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
 			for(int b = 0; b < 3; b++) {
 				System.out.println(render.p.triangleUvs.get(i)[b][0] + ", " + render.p.triangleUvs.get(i)[b][1]);
@@ -58,6 +58,7 @@ public class Main implements ActionListener {
 		in.updatePosChange();
 		render.p.viewerPos[1] += in.posChange[1];
 		render.p.viewerPos[0] += in.posChange[0];
+		//System.out.println(render.p.viewerAngle[0]);
 		render.p.viewerAngle[0] += in.angleChange[0];
 		render.p.viewerAngle[1] += in.angleChange[1];
 		render.repaint();

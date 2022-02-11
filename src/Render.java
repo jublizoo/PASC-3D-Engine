@@ -76,9 +76,9 @@ public class Render extends JPanel {
 		p.projectAll();
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
-			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
-			triangleVector = p.calculateVector(p.triangles3d.get(a));
-			angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
+			//viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
+			//triangleVector = p.calculateVector(p.triangles3d.get(a));
+			//angle = p.calculateVectorAngle(viewerToTriangleVector, triangleVector);
 			
 			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a);
@@ -100,24 +100,21 @@ public class Render extends JPanel {
 		//Slope from points 2 - 3
 		double m3;
 		
-		Double[] point;
 		Double[] triangleY = new Double[3];
 		Double[][] texCoords = p.triangleUvs.get(triangleNum);
-		Double[] uv;
 		Double[][] triangle = originalTriangle.clone();
 		
 		//The starting and ending x values for each triangle "slice" (startX was already taken)
 		int x1;
 		int x2;
 		
-		//If we increase or decrease x while moving across a slice of the triangle
-		int dx;
-		
 		for(int i = 0; i < 3; i++) {
-			triangleY[i] = p.rotatePoint(p.triangles3d.get(triangleNum)[i], -p.viewerAngle[0], -p.viewerAngle[1])[1];
+			triangleY[i] = p.rotatePoint(p.triangles3d.get(triangleNum)[i], -p.viewerAngle[0], -p.viewerAngle[1])[1] - p.viewerPos[1];
 			//triangleY[i] = p.triangles3d.get(triangleNum)[i][1];
-		}	
-		
+		}	 
+		if(triangleNum ==0) {
+			System.out.println(triangleY[0] + ", " + triangleY[1] + ", " + triangleY[2]);
+		}
 		//Setting p1 to the largest y-value point
 		for(int i = 1; i < 3; i++) {
 			if(triangle[i][1] > triangle[0][1]) {
@@ -184,7 +181,6 @@ public class Render extends JPanel {
 	}
 	
 	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords) {
-		int dx;
 		Double[] point;
 		Double[] uv;
 		point = new Double[] {(double) b, (double) i};

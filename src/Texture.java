@@ -73,16 +73,16 @@ public class Texture {
 		 * b1, b2, and b3 are the barycentric coordinates of each point, and v1, v2, and v3 is each point.
 		 * 1 / ( ( 1 / v1.y ) * b1 + ( 1 / v2.y ) * b2 + ( 1 / v3.y ) * b3 )
 		 */
-		y = 1 / (baryCoords[0] / triangleY[0] + 
+		y = 1.0 / (baryCoords[0] / triangleY[0] + 
 				baryCoords[1] / triangleY[1] + 
 				baryCoords[2] / triangleY[2]);
 		
 		//y * (( t1.x / v1.y ) * b1 + ( t2.x / v2.y ) * b2 + ( t3.x / v3.y ) * b3)
-		u = y * (texCoords[0][0] * baryCoords[0] / triangleY[0] + 
-				texCoords[1][0] * baryCoords[1] / triangleY[1] + 
-				texCoords[2][0] * baryCoords[2] / triangleY[2]);
+		u = y * ((texCoords[0][0] * baryCoords[0] / triangleY[0]) + 
+				(texCoords[1][0] * baryCoords[1] / triangleY[1]) + 
+				(texCoords[2][0] * baryCoords[2] / triangleY[2]));
 		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
-		v = y * ((texCoords[0][1] * baryCoords[0] / triangleY[0]) + 
+		v = y * ((texCoords[0][1] * baryCoords[0] / triangleY[0]) + 	
 				(texCoords[1][1] * baryCoords[1] / triangleY[1]) + 
 				(texCoords[2][1] * baryCoords[2] / triangleY[2]));
 		/*
@@ -93,7 +93,7 @@ public class Texture {
 				texCoords[1][1] * baryCoords[1]  + 
 				texCoords[2][1] * baryCoords[2]);
 		*/
-		uv = new Double[] {v, u};
+		uv = new Double[] {u, v};
 		return uv;
 	}
 	

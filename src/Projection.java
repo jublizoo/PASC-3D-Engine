@@ -90,8 +90,7 @@ public class Projection extends Display{
 			for(int b = 0; b < 3; b++) {
 				point2d = projectPoint(rotatePoint(triangles3d.get(a)[b], -viewerAngle[0], -viewerAngle[1]));
 					
-				triangles2d.get(a)[b][0] = point2d[0];
-				triangles2d.get(a)[b][1] = point2d[1];
+				triangles2d.get(a)[b] = point2d;
 			}
 		}
 
