@@ -181,7 +181,8 @@ public class Render extends JPanel {
 	}
 	
 	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
-		int lightLevel;
+		double lightLevel;
+		Color color;
 		Double[] point;
 		Double[] uv;
 		point = new Double[] {(double) b, (double) i};
@@ -202,7 +203,10 @@ public class Render extends JPanel {
 		}
 		
 		lightLevel = calculateLight(angle);
-		g2d.setColor(new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1]))));
+		color = new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
+		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel));
+		g2d.setColor(color);
+		
 		g2d.fillRect(b, i, 1, 1);
 		
 	}
@@ -243,8 +247,8 @@ public class Render extends JPanel {
 			System.out.println(angle2);
 
 			
-			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) < Math.PI / 2) {
-				lightLevel = calculateLight(angle);
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
+				lightLevel = (int) (255 * calculateLight(angle));
 				c = new Color(lightLevel, lightLevel, lightLevel);
 				
 				g2d.setColor(c);
@@ -260,8 +264,8 @@ public class Render extends JPanel {
 				
 	}
 	
-	public int calculateLight(Double angle) {
-		int lightLevel = (int) Math.round(255 * ((angle / Math.PI)));
+	public double calculateLight(Double angle) {
+		double lightLevel =  ((angle / Math.PI));
 		return lightLevel;
 		
 	}
