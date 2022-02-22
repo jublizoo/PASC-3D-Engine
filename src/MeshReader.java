@@ -166,7 +166,7 @@ public class MeshReader {
 				 * This " " is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 				 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
 				 * added to triangles3d, unless we manually add a space.
-				 */
+j				 */
 				String currentLine = wholeText.get(uvLineNum) + " ";
 				//TODO Technically only one dimension of a vertex, so might want to change
 				StringBuilder currentUvCoord = new StringBuilder("");

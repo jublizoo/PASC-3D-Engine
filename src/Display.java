@@ -4,7 +4,7 @@ public class Display {
 	int screenWidth;
 	int screenHeight;
 	boolean useWidth;
-	double aspectRatio = 16.0 / 9.0;
+	double aspectRatio = 16.0f / 9.0f;
 	double innerWidth;
 	double innerHeight;
 	double startX;

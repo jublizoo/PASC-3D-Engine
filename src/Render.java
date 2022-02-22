@@ -13,11 +13,14 @@ public class Render extends JPanel {
 	
 	Projection p;
 	Main m;
+	Double[][] zBuffer;
 	
-	BufferedImage image;
+	BufferedImage texture;
+	BufferedImage finalImg;
 
 	public Render(Main m) {
 		p = new Projection();
+		p.resetParameters();
 		this.m = m;
 		loadImages();
 	}
@@ -37,7 +40,7 @@ public class Render extends JPanel {
 	
 	public void loadImages() {
 		try {
-			image = ImageIO.read(new File("tex.png"));
+			texture = ImageIO.read(new File("tex.png"));
 		} catch (IOException e) {}
 	}
 	
@@ -76,17 +79,24 @@ public class Render extends JPanel {
 		p.sortLists();
 		p.projectAll();
 		
+		//Update z-buffer size / reset values to null
+		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
+		finalImg = new BufferedImage((int) p.innerWidth, (int) p.innerHeight, BufferedImage.TYPE_INT_RGB);
+
+		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
 			viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
 			triangleVector = p.calculateVector(p.triangles3d.get(a));
 			angle = p.calculateVectorAngle(triangleVector, viewerVector);
 			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
-			
+						
 			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a, angle);
 			}
 		}
+		
+		g2d.drawImage(finalImg, (int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight, null);
 	}
 	
 	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	
@@ -187,27 +197,32 @@ public class Render extends JPanel {
 		Double[] uv;
 		point = new Double[] {(double) b, (double) i};
 	
-		uv = m.tex.interpolateCoords(triangleY, m.tex.calculateBaryCoords(originalTriangle, point), texCoords);
-		uv[0] *= image.getWidth();
-		uv[1] *= image.getHeight();
+		//TODO Break up, stop process if y-value is larger
+		uv = p.interpolateCoords(triangleY, p.calculateBaryCoords(originalTriangle, point), texCoords);
+		uv[0] *= texture.getWidth();
+		uv[1] *= texture.getHeight();
 		
-		if(uv[0] >= image.getWidth()) {
-			uv[0] = (double) (image.getWidth() - 1);
+		if(uv[0] >= texture.getWidth()) {
+			uv[0] = (double) (texture.getWidth() - 1);
 		}else if(uv[0] <= 0) {
 			uv[0] = 1.0;
 		}
-		if(uv[1] >= image.getHeight()) {
-			uv[1] = (double) image.getHeight() - 1;
+		if(uv[1] >= texture.getHeight()) {
+			uv[1] = (double) texture.getHeight() - 1;
 		}else if(uv[1] <= 0) {
 			uv[1] = 1.0;
 		}
 		
 		lightLevel = calculateLight(angle);
-		color = new Color(image.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
+		color = new Color(texture.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
 		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel));
 		g2d.setColor(color);
 		
-		g2d.fillRect(b, i, 1, 1);
+		if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
+			finalImg.setRGB(b, i, color.getRGB());
+		}
+		
+		//g2d.fillRect(b, i, 1, 1);
 		
 	}
 	

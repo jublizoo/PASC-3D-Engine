@@ -19,10 +19,9 @@ public class Main implements ActionListener {
 	boolean addFile = false;
 	
 	public Main() {
-		timer = new Timer(20, this);
+		timer = new Timer(5, this);
 		render = new Render(this);
 		reader = new MeshReader(render.p);
-		tex = new Texture();
 		reader.readFile("capybara.txt");
 		for(int i = 0; i < render.p.triangleUvs.size(); i++) {
 			for(int b = 0; b < 3; b++) {
