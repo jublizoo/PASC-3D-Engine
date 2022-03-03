@@ -19,6 +19,7 @@ public class Main implements ActionListener {
 	boolean addFile = false;
 	
 	public Main() {
+		
 		timer = new Timer(5, this);
 		render = new Render(this);
 		reader = new MeshReader(render.p);
@@ -28,14 +29,15 @@ public class Main implements ActionListener {
 				System.out.println(render.p.triangleUvs.get(i)[b][0] + ", " + render.p.triangleUvs.get(i)[b][1]);
 			}
 		}
+		
 		in = new UserInput(render.p, this);
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setSize(500, 500);
 		frame.setTitle("3D Display");
-		frame.setVisible(true);
 		frame.add(render);
 		frame.addKeyListener(in);
+		frame.setVisible(true);
 		timer.start();
 		in.start();
 		

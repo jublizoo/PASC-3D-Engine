@@ -36,6 +36,11 @@ public class Projection extends Display{
 	 * triangles3d ArrayList, and then the index of the last triangle of the object in the triangles3d ArrayList
 	 */
 	ArrayList<Integer[]> objIndexes = new ArrayList<Integer[]>();
+		
+	public Projection(Main m) {
+		//setDisplayDimensions(m.frame.getContentPane().getWidth(), m.frame.getContentPane().getHeight());
+		//resetParameters();
+	}
 
 	public Double[] projectPoint(Double[] point3d) {
 		Double[] point2d = new Double[2];
@@ -230,46 +235,6 @@ public class Projection extends Display{
 								triangle[1][0] * (triangle[2][1] - triangle[0][1]) + 
 								triangle[2][0] * (triangle[0][1] - triangle[1][1]));
 		return area;
-	}
-	
-	public Double[] interpolateCoords(Double[] triangleY, Double[] baryCoords, Double[][] texCoords) {
-		//The y coordinate of our point
-		double y;
-		//The final uv coordinates
-		double u;
-		double v;
-		Double[] uv;
-		//this is fax af
-		/*
-		 * Using the barycentric coordinates to find the z-coord. We use triangle[i][1], because we want to access
-		 * the y coordinate of our point. Normally this would be referred to as z or w, but we use a different 
-		 * coordinate system where z is vertical. Technically, our camera does not rotate (we rotate the world 
-		 * instead), so our y-coordinate is the "depth" of each point. The equation is listed below, where 
-		 * b1, b2, and b3 are the barycentric coordinates of each point, and v1, v2, and v3 is each point.
-		 * 1 / ( ( 1 / v1.y ) * b1 + ( 1 / v2.y ) * b2 + ( 1 / v3.y ) * b3 )
-		 */
-		y = 1.0 / (baryCoords[0] / triangleY[0] + 
-				baryCoords[1] / triangleY[1] + 
-				baryCoords[2] / triangleY[2]);
-		
-		//y * (( t1.x / v1.y ) * b1 + ( t2.x / v2.y ) * b2 + ( t3.x / v3.y ) * b3)
-		u = y * ((texCoords[0][0] * baryCoords[0] / triangleY[0]) + 
-				(texCoords[1][0] * baryCoords[1] / triangleY[1]) + 
-				(texCoords[2][0] * baryCoords[2] / triangleY[2]));
-		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
-		v = y * ((texCoords[0][1] * baryCoords[0] / triangleY[0]) + 	
-				(texCoords[1][1] * baryCoords[1] / triangleY[1]) + 
-				(texCoords[2][1] * baryCoords[2] / triangleY[2]));
-		/*
-		u = (texCoords[0][0] * baryCoords[0] + 
-				texCoords[1][0] * baryCoords[1] + 
-				texCoords[2][0] * baryCoords[2]);
-		v = (texCoords[0][1] * baryCoords[0]  + 
-				texCoords[1][1] * baryCoords[1]  + 
-				texCoords[2][1] * baryCoords[2]);
-		*/
-		uv = new Double[] {u, v};
-		return uv;
 	}
 	
 	/*

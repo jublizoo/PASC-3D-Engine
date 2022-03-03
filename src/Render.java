@@ -5,6 +5,7 @@ import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -19,8 +20,7 @@ public class Render extends JPanel {
 	BufferedImage finalImg;
 
 	public Render(Main m) {
-		p = new Projection();
-		p.resetParameters();
+		p = new Projection(m);
 		this.m = m;
 		loadImages();
 	}
@@ -40,7 +40,7 @@ public class Render extends JPanel {
 	
 	public void loadImages() {
 		try {
-			texture = ImageIO.read(new File("tex.png"));
+			texture = ImageIO.read(new File("download.png"));
 		} catch (IOException e) {}
 	}
 	
@@ -81,7 +81,7 @@ public class Render extends JPanel {
 		
 		//Update z-buffer size / reset values to null
 		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
-		finalImg = new BufferedImage((int) p.innerWidth, (int) p.innerHeight, BufferedImage.TYPE_INT_RGB);
+		finalImg = new BufferedImage((int) p.innerWidth, (int) p.innerHeight, BufferedImage.TYPE_INT_ARGB);
 
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
@@ -91,7 +91,7 @@ public class Render extends JPanel {
 			angle = p.calculateVectorAngle(triangleVector, viewerVector);
 			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
 						
-			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
+			if(p.midPointDistances.get(a) > 0.5 && Math.abs(angle2) > Math.PI / 2) {
 				traverse(p.triangles2d.get(a), g2d, a, angle);
 			}
 		}
@@ -163,11 +163,15 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
+						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
+						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					}
 				}
 			}
 		}
@@ -179,11 +183,15 @@ public class Render extends JPanel {
 			
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
+						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
-					drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
+						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+					}
 				}
 			}
 		}
@@ -195,10 +203,16 @@ public class Render extends JPanel {
 		Color color;
 		Double[] point;
 		Double[] uv;
+		double y;
 		point = new Double[] {(double) b, (double) i};
 	
-		//TODO Break up, stop process if y-value is larger
-		uv = p.interpolateCoords(triangleY, p.calculateBaryCoords(originalTriangle, point), texCoords);
+		
+		uv = interpolateCoords(triangleY, p.calculateBaryCoords(originalTriangle, point), texCoords, b, i);
+		
+		if(uv == null) {
+			return;
+		}
+		
 		uv[0] *= texture.getWidth();
 		uv[1] *= texture.getHeight();
 		
@@ -215,15 +229,11 @@ public class Render extends JPanel {
 		
 		lightLevel = calculateLight(angle);
 		color = new Color(texture.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
-		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel));
+		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel), 254);
 		g2d.setColor(color);
 		
-		if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {
-			finalImg.setRGB(b, i, color.getRGB());
-		}
-		
-		//g2d.fillRect(b, i, 1, 1);
-		
+		finalImg.setRGB(b, i, color.getRGB());
+				
 	}
 	
 	//TODO Fix bug where triangles show up while looking sideways. Maybe each point is out of range but its drawing both?
@@ -277,6 +287,56 @@ public class Render extends JPanel {
 			}
 		}
 				
+	}
+	
+	public Double[] interpolateCoords(Double[] triangleY, Double[] baryCoords, Double[][] texCoords, int b, int i) {
+		//The y coordinate of our point
+		double y;
+		//The final uv coordinates
+		double u;
+		double v;
+		Double[] uv;
+		//this is fax af
+		/*
+		 * Using the barycentric coordinates to find the z-coord. We use triangle[i][1], because we want to access
+		 * the y coordinate of our point. Normally this would be referred to as z or w, but we use a different 
+		 * coordinate system where z is vertical. Technically, our camera does not rotate (we rotate the world 
+		 * instead), so our y-coordinate is the "depth" of each point. The equation is listed below, where 
+		 * b1, b2, and b3 are the barycentric coordinates of each point, and v1, v2, and v3 is each point.
+		 * 1 / ( ( 1 / v1.y ) * b1 + ( 1 / v2.y ) * b2 + ( 1 / v3.y ) * b3 )
+		 */
+		y = 1.0 / (baryCoords[0] / triangleY[0] + 
+				baryCoords[1] / triangleY[1] + 
+				baryCoords[2] / triangleY[2]);
+		
+		Double bufferedY = zBuffer[b][i];
+		
+		if(bufferedY != null) {
+			if(bufferedY < y) {
+				return null;
+			}
+		}
+		
+		zBuffer[b][i] = y;
+				
+		//y * (( t1.x / v1.y ) * b1 + ( t2.x / v2.y ) * b2 + ( t3.x / v3.y ) * b3)
+		u = y * ((texCoords[0][0] * baryCoords[0] / triangleY[0]) + 
+				(texCoords[1][0] * baryCoords[1] / triangleY[1]) + 
+				(texCoords[2][0] * baryCoords[2] / triangleY[2]));
+		//y * (( t1.z / v1.y ) * b1 + ( t2.z / v2.y ) * b2 + ( t3.z / v3.y ) * b3)
+		v = y * ((texCoords[0][1] * baryCoords[0] / triangleY[0]) + 	
+				(texCoords[1][1] * baryCoords[1] / triangleY[1]) + 
+				(texCoords[2][1] * baryCoords[2] / triangleY[2]));
+		/*
+		u = (texCoords[0][0] * baryCoords[0] + 
+				texCoords[1][0] * baryCoords[1] + 
+				texCoords[2][0] * baryCoords[2]);
+		v = (texCoords[0][1] * baryCoords[0]  + 
+				texCoords[1][1] * baryCoords[1]  + 
+				texCoords[2][1] * baryCoords[2]);
+		*/
+		uv = new Double[] {u, v};
+		return uv;
 	}
 	
 	public double calculateLight(Double angle) {
