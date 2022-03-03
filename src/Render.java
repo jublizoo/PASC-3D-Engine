@@ -66,6 +66,35 @@ public class Render extends JPanel {
 				
 	}
 	
+	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner
+	public ArrayList<Double[][]> clipTriangle(Double[][] triangle, Double[] corner1, Double[] corner2) {
+		ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
+		clippedTriangles.add(triangle);
+		
+		for(int i = 0; i < 4; i++) {
+			switch(i) {
+				case 0:
+					break;
+				case 1:
+					break;
+				case 2:
+					break;
+				case 3:
+					break;
+			}
+			
+			//clipping code
+		}
+		
+		//check which triangles are outside
+		//if 3
+			//return
+		//if 2
+			
+		
+		return clippedTriangles;
+	}
+	
 	//Tex coords are not sorted
 	public void textureTriangles(Graphics2D g2d) {
 		//The surface normal of a given triangle
