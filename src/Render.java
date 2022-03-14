@@ -64,37 +64,68 @@ public class Render extends JPanel {
 			}
 		}
 				
-	}
+	}	
 	
 	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner
 	public ArrayList<Double[][]> clipTriangle(Double[][] triangle, Double[] corner1, Double[] corner2) {
 		ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
 		clippedTriangles.add(triangle);
+		int[] insidePoints;
+		int insideSize;
+		int[] outsidePoints;
+		int outsideSize;
 		
 		for(int i = 0; i < 4; i++) {
-			switch(i) {
+			insidePoints = new int[3];
+			insideSize = 0;
+			outsidePoints = new int[3];
+			outsideSize = 0;
+			
+			for(int b = 0; b < 3; b++) {
+				switch(i) {
+				//top
 				case 0:
+					if(triangle[b][1] > corner1[1]) {
+						insidePoints[insideSize] = (b) % 3; 
+						insideSize++;
+						outsidePoints[insideSize] = (b+1) % 3; 
+						outsideSize++;
+						outsidePoints[insideSize] = (b-1) % 3; 
+						outsideSize++; 
+					}else {
+						
+					}
 					break;
+				//bottom
 				case 1:
+					
 					break;
+				//left
 				case 2:
+					
 					break;
+				//right
 				case 3:
+					
 					break;
+				}
 			}
 			
-			//clipping code
-		}
-		
-		//check which triangles are outside
-		//if 3
-			//return
-		//if 2
-			
+			//check which points are outside
+				
+			//Have an array for insidePoints and outsidePoints, stores indexes. Have an int for the "size" of each, also use for indexing
+			//if 3
+				//return
+			//if 2
+				//find intersection of insidePoints[0] 
+			//if 1
+				//find intersection of outsidePoints[0] with insidePoints[0] and insidePoints[1]
+				//triangle with outsidePoints[0], intersections[0], and intersections[1]
+		}	
 		
 		return clippedTriangles;
 	}
-	
+		
 	//Tex coords are not sorted
 	public void textureTriangles(Graphics2D g2d) {
 		//The surface normal of a given triangle
