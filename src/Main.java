@@ -13,7 +13,6 @@ public class Main implements ActionListener {
 	JFrame frame;
 	MeshReader reader;
 	String fileName;
-	Texture tex;
 	
 	boolean cont = true;
 	boolean addFile = false;

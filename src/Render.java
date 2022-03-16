@@ -37,7 +37,7 @@ public class Render extends JPanel {
 		textureTriangles(g2d);
 		//drawPoints(g2d);
 	}
-	
+		
 	public void loadImages() {
 		try {
 			texture = ImageIO.read(new File("download.png"));
@@ -67,13 +67,26 @@ public class Render extends JPanel {
 	}	
 	
 	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner
-	public ArrayList<Double[][]> clipTriangle(Double[][] triangle, Double[] corner1, Double[] corner2) {
+	public ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {
 		ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
-		clippedTriangles.add(triangle);
+		clippedTriangles.add(originalTriangle);
+		Double[][] triangle = null;
+		
+		//If a point is inside the bounding box
+		boolean inside;
 		int[] insidePoints;
 		int insideSize;
 		int[] outsidePoints;
 		int outsideSize;
+		
+		//initial size of the clipped triangle array 
+		int initialSize;
+		
+		//The 2 intersections with the current line (if it intersects)
+		Double[][] intersections;
+		
+		//If the current line is horizontal
+		boolean horizontal;
 		
 		for(int i = 0; i < 4; i++) {
 			insidePoints = new int[3];
@@ -81,39 +94,88 @@ public class Render extends JPanel {
 			outsidePoints = new int[3];
 			outsideSize = 0;
 			
-			for(int b = 0; b < 3; b++) {
-				switch(i) {
-				//top
-				case 0:
-					if(triangle[b][1] > corner1[1]) {
-						insidePoints[insideSize] = (b) % 3; 
+			//We only want to cycle to the initial size. We will be adding new triangles, and if we use the actual size, it will continue removing the new triangles.
+			initialSize = clippedTriangles.size();
+			for(int b = 0; b < initialSize; b++) {
+				triangle = clippedTriangles.get(0);
+				clippedTriangles.remove(0);
+				
+				for(int c = 0; c < 3; c++) {
+					inside = false;
+					
+					switch(i) {
+					//top
+					case 0:
+						if(triangle[c][1] > corner1[1]) {
+							inside = true;
+						}
+						break;
+					//bottom
+					case 1:
+						if(triangle[c][1] < corner2[1]) {
+							inside = true;
+						}
+						break;
+					//left
+					case 2:
+						if(triangle[c][0] > corner1[0]) {
+							inside = true;
+						}
+						break;
+					//right
+					case 3:
+						if(triangle[c][0] < corner2[0]) {
+							inside = true;
+						}
+						break;
+					}
+					
+					if(inside) {
+						insidePoints[insideSize] = (c); 
 						insideSize++;
-						outsidePoints[insideSize] = (b+1) % 3; 
+					}else {
+						outsidePoints[outsideSize] = (c); 
 						outsideSize++;
-						outsidePoints[insideSize] = (b-1) % 3; 
-						outsideSize++; 
+					}
+				}
+				
+				intersections = new Double[2][2];
+				
+				//If a triangle is outside (outsideSize == 3), we do nothing. However, we do not return, because there may be other triangles which are not inside
+				if(outsideSize == 2) {
+					if(i % 2 == 0) {
+						
 					}else {
 						
 					}
-					break;
-				//bottom
-				case 1:
 					
-					break;
-				//left
-				case 2:
+					triangle[0] = intersections[0];
+					triangle[1] = intersections[1];
+					triangle[2] = originalTriangle[insidePoints[0]];
+					clippedTriangles.add(triangle);
+				}else if(outsideSize == 1) {
+					if(i % 2 == 0) {
+						
+					}else {
+						
+					}
 					
-					break;
-				//right
-				case 3:
+					triangle[0] = intersections[0];
+					triangle[1] = intersections[1];
+					triangle[2] = originalTriangle[insidePoints[0]];
+					clippedTriangles.add(triangle);
 					
-					break;
+					//Need to figure out which intersection point to use
+					triangle[0] = intersections[0];
+					triangle[1] = originalTriangle[insidePoints[0]];
+					triangle[2] = originalTriangle[insidePoints[1]];
+					clippedTriangles.add(triangle);
+				}else {
+					clippedTriangles.add(triangle);
 				}
 			}
 			
-			//check which points are outside
-				
-			//Have an array for insidePoints and outsidePoints, stores indexes. Have an int for the "size" of each, also use for indexing
+			
 			//if 3
 				//return
 			//if 2
@@ -121,9 +183,41 @@ public class Render extends JPanel {
 			//if 1
 				//find intersection of outsidePoints[0] with insidePoints[0] and insidePoints[1]
 				//triangle with outsidePoints[0], intersections[0], and intersections[1]
+			//if 0
+				//add triangle
+				//return
 		}	
 		
 		return clippedTriangles;
+		
+	}
+	
+	Double[][] collision(int l1, Double[] p1, Double[] p2, boolean horizontal){
+		if(horizontal) {
+			
+		}else{
+			
+		}
+		
+		return null;
+		
+	}
+	
+	int cycle(int in, int mod) {
+		int out;
+		
+		if(in >= mod) {
+			out = in % mod;
+		}else {
+			out = in % mod;
+			
+			if(out != 0) {
+				out += mod;
+			}
+		}
+		
+		return out;
+		
 	}
 		
 	//Tex coords are not sorted
