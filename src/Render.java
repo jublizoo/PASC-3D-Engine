@@ -84,10 +84,7 @@ public class Render extends JPanel {
 		
 		//The 2 intersections with the current line (if it intersects)
 		Double[][] intersections;
-		
-		//If the current line is horizontal
-		boolean horizontal;
-		
+				
 		for(int i = 0; i < 4; i++) {
 			insidePoints = new int[3];
 			insideSize = 0;
@@ -141,12 +138,25 @@ public class Render extends JPanel {
 				
 				intersections = new Double[2][2];
 				
-				//If a triangle is outside (outsideSize == 3), we do nothing. However, we do not return, because there may be other triangles which are not inside
+				//If a triangle is outside (outsideSize == 3), we do nothing. The triangle is already removed.
 				if(outsideSize == 2) {
-					if(i % 2 == 0) {
-						
-					}else {
-						
+					switch(i) {
+					//top
+					case 0:
+						intersections = collision(corner1[1], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], true);
+						break;
+					//bottom
+					case 1:
+						intersections = collision(corner2[1], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], true);
+						break;
+					//left
+					case 2:
+						intersections = collision(corner1[0], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], false);
+						break;
+					//right
+					case 3:
+						intersections = collision(corner2[0], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], false);
+						break;
 					}
 					
 					triangle[0] = intersections[0];
@@ -154,10 +164,23 @@ public class Render extends JPanel {
 					triangle[2] = originalTriangle[insidePoints[0]];
 					clippedTriangles.add(triangle);
 				}else if(outsideSize == 1) {
-					if(i % 2 == 0) {
-						
-					}else {
-						
+					switch(i) {
+					//top
+					case 0:	
+						intersections = collision(corner1[1], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], true);
+						break;
+					//bottom
+					case 1:
+						intersections = collision(corner2[1], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], true);
+						break;
+					//left
+					case 2:
+						intersections = collision(corner1[0], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], false);
+						break;
+					//right
+					case 3:
+						intersections = collision(corner2[0], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], false);
+						break;
 					}
 					
 					triangle[0] = intersections[0];
@@ -165,41 +188,43 @@ public class Render extends JPanel {
 					triangle[2] = originalTriangle[insidePoints[0]];
 					clippedTriangles.add(triangle);
 					
-					//Need to figure out which intersection point to use
-					triangle[0] = intersections[0];
-					triangle[1] = originalTriangle[insidePoints[0]];
-					triangle[2] = originalTriangle[insidePoints[1]];
+					//The commented line is uneccesary because it already has that value.
+					triangle[0] = originalTriangle[insidePoints[0]];
+					//triangle[1] = originalTriangle[insidePoints[1]];
+					triangle[2] = intersections[1];
 					clippedTriangles.add(triangle);
-				}else {
+				}else if(outsideSize == 0){
+					//If the triangle is fully inside, we want to add it back (we already removed it)
 					clippedTriangles.add(triangle);
 				}
 			}
-			
-			
-			//if 3
-				//return
-			//if 2
-				//find intersection of insidePoints[0] 
-			//if 1
-				//find intersection of outsidePoints[0] with insidePoints[0] and insidePoints[1]
-				//triangle with outsidePoints[0], intersections[0], and intersections[1]
-			//if 0
-				//add triangle
-				//return
 		}	
 		
 		return clippedTriangles;
 		
 	}
 	
-	Double[][] collision(int l1, Double[] p1, Double[] p2, boolean horizontal){
+	//Triangle collision, p3 is the point that touches both lines which will be tested for collision
+	Double[][] collision(Double l1, Double[] p1, Double[] p2, Double[] p3, boolean horizontal){
+		//Each intersection point
+		Double[] i1 = new Double[2];
+		Double[] i2 = new Double[2];
+		
 		if(horizontal) {
+			i1[0] = p1[0] + (l1 - p1[1]) * (p3[0] - p1[0]) / (p3[1] - p1[1]);
+			i1[1] = l1;
 			
+			i2[0] = p2[0] + (l1 - p2[1]) * (p3[0] - p2[0]) / (p3[1] - p2[1]);
+			i2[1] = l1;
 		}else{
+			i1[0] = l1;
+			i1[1] = p1[1] + (l1 - p1[0]) * (p3[1] - p1[1]) / (p3[0] - p1[0]);
 			
+			i1[0] = l1;
+			i1[1] = p1[1] + (l1 - p1[0]) * (p3[1] - p1[1]) / (p3[0] - p1[0]);
 		}
 		
-		return null;
+		return new Double[][] {i1, i2};
 		
 	}
 	
