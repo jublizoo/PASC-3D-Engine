@@ -169,7 +169,7 @@ public class Render extends JPanel {
 						clippedTriangle[0] = triangle[insidePoints[0]];
 						clippedTriangle[1] = intersections[0];
 						clippedTriangle[2] = intersections[1];
-						clippedTriangles.add(clippedTriangle);
+						clippedTriangles.add(clippedTriangle.clone());
 					}else if(outsideSize == 1) {
 						switch(i) {
 						//top
@@ -197,16 +197,16 @@ public class Render extends JPanel {
 						clippedTriangle[0] = triangle[insidePoints[0]];
 						clippedTriangle[1] = intersections[0];
 						clippedTriangle[2] = intersections[1];
-						clippedTriangles.add(clippedTriangle);
+						clippedTriangles.add(clippedTriangle.clone());
 						
 						//The commented line is uneccesary because it already has that value.
 						clippedTriangle[0] = triangle[insidePoints[0]];
 						clippedTriangle[1] = triangle[insidePoints[1]];
 						clippedTriangle[2] = intersections[1];
-						clippedTriangles.add(clippedTriangle);
+						clippedTriangles.add(clippedTriangle.clone());
 					}else if(outsideSize == 0){
 						//If the triangle is fully inside, we want to add it back (we already removed it)
-						clippedTriangles.add(triangle);
+						clippedTriangles.add(triangle.clone());
 					}
 				}
 			}	
@@ -263,12 +263,12 @@ public class Render extends JPanel {
 		Double[] viewerVector;
 		Double[] viewerToTriangleVector;
 		Double angle;
-		Double angle2;
+		Double angle2;	
 		
 		Double[][] triangle;
 		ArrayList<Double[][]> clippedTriangles;
-		Double[] corner1 = new Double[] {50.0, 50.0};
-		Double[] corner2 = new Double[] {p.innerWidth - 50, p.innerHeight - 50};
+		Double[] corner1 = new Double[] {0.0, 0.0};
+		Double[] corner2 = new Double[] {p.innerWidth, p.innerHeight};
 		
 		p.calculateTriangleMidPoints();
 		p.calculateMidPointDistances();
@@ -294,7 +294,7 @@ public class Render extends JPanel {
 				
 				for(int b = 0; b < clippedTriangles.size(); b++) {
 					//TODO use the original triangle as an input, for interpolation
-					traverse(clippedTriangles.get(b), g2d, a, angle);
+					traverse(clippedTriangles.get(b), p.triangles2d.get(a), g2d, a, angle);
 				}
 			}
 		}
@@ -302,7 +302,7 @@ public class Render extends JPanel {
 		g2d.drawImage(finalImg, (int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight, null);
 	}
 	
-	public void traverse(Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	
+	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	
 		Double[] temp;
 		
 		Integer[] p1 = new Integer[2];
@@ -318,7 +318,7 @@ public class Render extends JPanel {
 		
 		Double[] triangleY = new Double[3];
 		Double[][] texCoords = p.triangleUvs.get(triangleNum);
-		Double[][] triangle = originalTriangle.clone();
+		Double[][] triangle = clippedTriangle.clone();
 		
 		//The starting and ending x values for each triangle "slice" (startX was already taken)
 		int x1;
