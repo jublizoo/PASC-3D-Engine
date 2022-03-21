@@ -67,142 +67,153 @@ public class Render extends JPanel {
 	}	
 	
 	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner
-	public ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {
-		ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
-		clippedTriangles.add(originalTriangle);
-		Double[][] triangle = null;
-		
-		//If a point is inside the bounding box
-		boolean inside;
-		int[] insidePoints;
-		int insideSize;
-		int[] outsidePoints;
-		int outsideSize;
-		
-		//initial size of the clipped triangle array 
-		int initialSize;
-		
-		//The 2 intersections with the current line (if it intersects)
-		Double[][] intersections;
-				
-		for(int i = 0; i < 4; i++) {
-			insidePoints = new int[3];
-			insideSize = 0;
-			outsidePoints = new int[3];
-			outsideSize = 0;
+		public ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {
+			ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
+			clippedTriangles.add(originalTriangle);
+			//The starting triangle (may have already been clipped on other boundaries)
+			Double[][] triangle = null;
+			//The triangle after being clipped on the current boundary
+			Double[][] clippedTriangle = new Double[3][2];
 			
-			//We only want to cycle to the initial size. We will be adding new triangles, and if we use the actual size, it will continue removing the new triangles.
-			initialSize = clippedTriangles.size();
-			for(int b = 0; b < initialSize; b++) {
-				triangle = clippedTriangles.get(0);
-				clippedTriangles.remove(0);
-				
-				for(int c = 0; c < 3; c++) {
-					inside = false;
+			//If a point is inside the bounding box
+			boolean inside;
+			int[] insidePoints;
+			int insideSize;
+			int[] outsidePoints;
+			int outsideSize;
+			
+			//initial size of the clipped triangle array 
+			int initialSize;
+			
+			//The 2 intersections with the current line (if it intersects)
+			Double[][] intersections;
 					
-					switch(i) {
-					//top
-					case 0:
-						if(triangle[c][1] > corner1[1]) {
-							inside = true;
+			for(int i = 0; i < 4; i++) {
+				//We only want to cycle to the initial size. We will be adding new triangles, and if we use the actual size, it will continue removing the new triangles.
+				initialSize = clippedTriangles.size();
+				for(int b = 0; b < initialSize; b++) {
+					insidePoints = new int[3];
+					insideSize = 0;
+					outsidePoints = new int[3];
+					outsideSize = 0;
+					
+					triangle = clippedTriangles.get(0);
+					clippedTriangles.remove(0);
+					
+					for(int c = 0; c < 3; c++) {
+						inside = false;
+						
+						switch(i) {
+						//top
+						case 0:
+							if(triangle[c][1] > corner1[1]) {
+								inside = true;
+							}
+							break;
+						//bottom
+						case 1:
+							if(triangle[c][1] < corner2[1]) {
+								inside = true;
+							}
+							break;
+						//left
+						case 2:
+							if(triangle[c][0] > corner1[0]) {
+								inside = true;
+							}
+							break;
+						//right
+						case 3:
+							if(triangle[c][0] < corner2[0]) {
+								inside = true;
+							}
+							break;
 						}
-						break;
-					//bottom
-					case 1:
-						if(triangle[c][1] < corner2[1]) {
-							inside = true;
+						
+						if(inside) {
+							insidePoints[insideSize] = (c); 
+							insideSize++;
+						}else {
+							outsidePoints[outsideSize] = (c); 
+							outsideSize++;
 						}
-						break;
-					//left
-					case 2:
-						if(triangle[c][0] > corner1[0]) {
-							inside = true;
-						}
-						break;
-					//right
-					case 3:
-						if(triangle[c][0] < corner2[0]) {
-							inside = true;
-						}
-						break;
 					}
 					
-					if(inside) {
-						insidePoints[insideSize] = (c); 
-						insideSize++;
-					}else {
-						outsidePoints[outsideSize] = (c); 
-						outsideSize++;
+					intersections = new Double[2][2];
+					
+					//If a triangle is outside (outsideSize == 3), we do nothing. The triangle is already removed.
+					if(outsideSize == 2) {						
+						switch(i) {
+						//top
+						case 0:
+							intersections = collision(corner1[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);
+							break;
+						//bottom
+						case 1:
+							intersections = collision(corner2[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);
+							break;
+						//left
+						case 2:
+							intersections = collision(corner1[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);
+							break;
+						//right
+						case 3:
+							intersections = collision(corner2[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);
+							break;
+						}
+						
+						if(intersections[0][0] == null || intersections[1][0] == null || intersections[0][1] == null || intersections[1][1] == null) {
+							System.out.println("big balls");
+						}
+												
+						clippedTriangle[0] = triangle[insidePoints[0]];
+						clippedTriangle[1] = intersections[0];
+						clippedTriangle[2] = intersections[1];
+						clippedTriangles.add(clippedTriangle);
+					}else if(outsideSize == 1) {
+						switch(i) {
+						//top
+						case 0:	
+							intersections = collision(corner1[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);
+							break;
+						//bottom
+						case 1:
+							intersections = collision(corner2[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);
+							break;
+						//left
+						case 2:
+							intersections = collision(corner1[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);
+							break;
+						//right
+						case 3:
+							intersections = collision(corner2[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);
+							break;
+						}
+						
+						if(intersections[0][0] == null || intersections[1][0] == null || intersections[0][1] == null || intersections[1][1] == null) {
+							System.out.println("big balls");
+						}
+						
+						clippedTriangle[0] = triangle[insidePoints[0]];
+						clippedTriangle[1] = intersections[0];
+						clippedTriangle[2] = intersections[1];
+						clippedTriangles.add(clippedTriangle);
+						
+						//The commented line is uneccesary because it already has that value.
+						clippedTriangle[0] = triangle[insidePoints[0]];
+						clippedTriangle[1] = triangle[insidePoints[1]];
+						clippedTriangle[2] = intersections[1];
+						clippedTriangles.add(clippedTriangle);
+					}else if(outsideSize == 0){
+						//If the triangle is fully inside, we want to add it back (we already removed it)
+						clippedTriangles.add(triangle);
 					}
 				}
-				
-				intersections = new Double[2][2];
-				
-				//If a triangle is outside (outsideSize == 3), we do nothing. The triangle is already removed.
-				if(outsideSize == 2) {
-					switch(i) {
-					//top
-					case 0:
-						intersections = collision(corner1[1], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], true);
-						break;
-					//bottom
-					case 1:
-						intersections = collision(corner2[1], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], true);
-						break;
-					//left
-					case 2:
-						intersections = collision(corner1[0], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], false);
-						break;
-					//right
-					case 3:
-						intersections = collision(corner2[0], originalTriangle[outsidePoints[0]], originalTriangle[outsidePoints[1]], originalTriangle[insidePoints[0]], false);
-						break;
-					}
-					
-					triangle[0] = intersections[0];
-					triangle[1] = intersections[1];
-					triangle[2] = originalTriangle[insidePoints[0]];
-					clippedTriangles.add(triangle);
-				}else if(outsideSize == 1) {
-					switch(i) {
-					//top
-					case 0:	
-						intersections = collision(corner1[1], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], true);
-						break;
-					//bottom
-					case 1:
-						intersections = collision(corner2[1], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], true);
-						break;
-					//left
-					case 2:
-						intersections = collision(corner1[0], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], false);
-						break;
-					//right
-					case 3:
-						intersections = collision(corner2[0], originalTriangle[insidePoints[0]], originalTriangle[insidePoints[1]], originalTriangle[outsidePoints[0]], false);
-						break;
-					}
-					
-					triangle[0] = intersections[0];
-					triangle[1] = intersections[1];
-					triangle[2] = originalTriangle[insidePoints[0]];
-					clippedTriangles.add(triangle);
-					
-					//The commented line is uneccesary because it already has that value.
-					triangle[0] = originalTriangle[insidePoints[0]];
-					//triangle[1] = originalTriangle[insidePoints[1]];
-					triangle[2] = intersections[1];
-					clippedTriangles.add(triangle);
-				}else if(outsideSize == 0){
-					//If the triangle is fully inside, we want to add it back (we already removed it)
-					clippedTriangles.add(triangle);
-				}
-			}
-		}	
-		
-		return clippedTriangles;
-		
-	}
+			}	
+			
+			return clippedTriangles;
+			
+		}
 	
 	//Triangle collision, p3 is the point that touches both lines which will be tested for collision
 	Double[][] collision(Double l1, Double[] p1, Double[] p2, Double[] p3, boolean horizontal){
@@ -220,8 +231,8 @@ public class Render extends JPanel {
 			i1[0] = l1;
 			i1[1] = p1[1] + (l1 - p1[0]) * (p3[1] - p1[1]) / (p3[0] - p1[0]);
 			
-			i1[0] = l1;
-			i1[1] = p1[1] + (l1 - p1[0]) * (p3[1] - p1[1]) / (p3[0] - p1[0]);
+			i2[0] = l1;
+			i2[1] = p2[1] + (l1 - p2[0]) * (p3[1] - p2[1]) / (p3[0] - p2[0]);
 		}
 		
 		return new Double[][] {i1, i2};
@@ -244,7 +255,7 @@ public class Render extends JPanel {
 		return out;
 		
 	}
-		
+	
 	//Tex coords are not sorted
 	public void textureTriangles(Graphics2D g2d) {
 		//The surface normal of a given triangle
@@ -253,6 +264,12 @@ public class Render extends JPanel {
 		Double[] viewerToTriangleVector;
 		Double angle;
 		Double angle2;
+		
+		Double[][] triangle;
+		ArrayList<Double[][]> clippedTriangles;
+		Double[] corner1 = new Double[] {50.0, 50.0};
+		Double[] corner2 = new Double[] {p.innerWidth - 50, p.innerHeight - 50};
+		
 		p.calculateTriangleMidPoints();
 		p.calculateMidPointDistances();
 		p.sortLists();
@@ -264,14 +281,21 @@ public class Render extends JPanel {
 
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
-			viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
+			
 			viewerToTriangleVector = new Double[] {p.triangleMidPoints.get(a)[0] - p.viewerPos[0], p.triangleMidPoints.get(a)[1] - p.viewerPos[1], p.triangleMidPoints.get(a)[2] - p.viewerPos[2]};
 			triangleVector = p.calculateVector(p.triangles3d.get(a));
-			angle = p.calculateVectorAngle(triangleVector, viewerVector);
 			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
 						
-			if(p.midPointDistances.get(a) > 0.5 && Math.abs(angle2) > Math.PI / 2) {
-				traverse(p.triangles2d.get(a), g2d, a, angle);
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {			
+				viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
+				angle = p.calculateVectorAngle(triangleVector, viewerVector);
+				
+				clippedTriangles = clipTriangle(p.triangles2d.get(a), corner1, corner2);
+				
+				for(int b = 0; b < clippedTriangles.size(); b++) {
+					//TODO use the original triangle as an input, for interpolation
+					traverse(clippedTriangles.get(b), g2d, a, angle);
+				}
 			}
 		}
 		
@@ -306,7 +330,9 @@ public class Render extends JPanel {
 
 		//Setting p1 to the largest y-value point
 		for(int i = 1; i < 3; i++) {
-			if(triangle[i][1] > triangle[0][1]) {
+			if(triangle[i][1] 
+					> 
+			triangle[0][1]) {
 				//Swap
 				temp = triangle[i];
 				triangle[i] = triangle[0];
