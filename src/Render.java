@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
-public class Render extends JPanel {
+public class Render extends JPanel implements Runnable{
 	
 	Projection p;
 	Main m;
@@ -24,7 +24,19 @@ public class Render extends JPanel {
 		this.m = m;
 		loadImages();
 	}
-
+	
+	@Override
+	public void run() {
+		BufferedImage imageSection;
+		
+		switch(Thread.currentThread().getName()){
+		case "1":
+		case "2":
+		case "3":
+		case "4":
+		}
+	}
+	
 	protected void paintComponent(Graphics g) {
 		//p.setDisplayDimensions();
 		Graphics2D g2d = (Graphics2D) g;
