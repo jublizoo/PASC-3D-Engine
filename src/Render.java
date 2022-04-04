@@ -14,8 +14,16 @@ public class Render extends JPanel implements Runnable{
 	
 	Projection p;
 	Main m;
-	Double[][] zBuffer;
+	volatile Double[][] zBuffer;
+	/*
+	synchronized Double[][] zBuffer(){
+		return zBuffe;
+	}
 	
+	synchronized void setZBuffer(int a, int b, Double value) {
+		zBuffe[a][b] = value;
+	}
+	*/
 	Graphics2D g2d;
 	
 	BufferedImage texture;
@@ -50,6 +58,7 @@ public class Render extends JPanel implements Runnable{
 		g2d.fillRect((int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight);
 		g2d.setColor(Color.BLACK);
 		
+		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
 		initializeThreads();
 		
 		try {
@@ -64,7 +73,7 @@ public class Render extends JPanel implements Runnable{
 		
 	}
 	
-	public void initializeThreads() {
+	public void initializeThreads() { 
 		threads = new ArrayList<Thread>();
 		
 		for(int i = 0; i < 4; i++) {
@@ -344,7 +353,7 @@ public class Render extends JPanel implements Runnable{
 		p.projectAll();
 		
 		//Update z-buffer size / reset values to null
-		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
+		//zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
 		
 		for(int a = 0; a < p.triangles2d.size(); a++) {
 			
@@ -352,20 +361,20 @@ public class Render extends JPanel implements Runnable{
 			triangleVector = p.calculateVector(p.triangles3d.get(a));
 			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);
 						
-			//if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {			
+			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {			
 				viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};
 				angle = p.calculateVectorAngle(triangleVector, viewerVector);
 				
 				threadNumber = Integer.parseInt(Thread.currentThread().getName());
-				clippedTriangles = clipTriangle(p.triangles2d.get(a), corner1s.get(threadNumber), corner2s.get(threadNumber));
-				//clippedTriangles = new ArrayList<Double[][]>();
-				//clippedTriangles.add(p.triangles2d.get(a));
+				//clippedTriangles = clipTriangle(p.triangles2d.get(a), corner1s.get(threadNumber), corner2s.get(threadNumber));
+				clippedTriangles = new ArrayList<Double[][]>();
+				clippedTriangles.add(p.triangles2d.get(a));
 				
 				for(int b = 0; b < clippedTriangles.size(); b++) {
 					//TODO use the original triangle as an input, for interpolation
 					traverse(clippedTriangles.get(b), p.triangles2d.get(a), g2d, a, angle);
 				}
-			//}
+			}
 		}
 		
 	}

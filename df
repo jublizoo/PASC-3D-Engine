@@ -1,0 +1,572 @@
+[33mcommit a38acaebc7bf8438f4b5ca1b7fc88806eed53aaa[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Julian Hennessy <jjhennessy1231@gmail.com>
+Date:   Thu Mar 31 14:11:13 2022 -0500
+
+    Multithreading is now functional but buggy. Random triangles will dissapear, and there appears to be an issue with z-buffer (maybe something else), which causes a weird flickering.
+
+[1mdiff --git a/bin/Render.class b/bin/Render.class[m
+[1mindex bee8a69..0edde8e 100644[m
+Binary files a/bin/Render.class and b/bin/Render.class differ
+[1mdiff --git a/src/Render.java b/src/Render.java[m
+[1mindex 05cdb4d..8fcdd5e 100644[m
+[1m--- a/src/Render.java[m
+[1m+++ b/src/Render.java[m
+[36m@@ -16,44 +16,108 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 	Main m;[m
+ 	Double[][] zBuffer;[m
+ 	[m
+[32m+[m	[32mGraphics2D g2d;[m
+[32m+[m[41m	[m
+ 	BufferedImage texture;[m
+ 	BufferedImage finalImg;[m
+[32m+[m[41m	[m
+[32m+[m	[32mArrayList<Thread> threads;[m
+[32m+[m	[32mArrayList<BufferedImage> imageSections;[m
+[32m+[m	[32mArrayList<Double[]> corner1s;[m
+[32m+[m	[32mArrayList<Double[]> corner2s;[m
+ [m
+ 	public Render(Main m) {[m
+ 		p = new Projection(m);[m
+ 		this.m = m;[m
+ 		loadImages();[m
+[32m+[m[41m		[m
+ 	}[m
+ 	[m
+ 	@Override[m
+[31m-	public void run() {[m
+[31m-		BufferedImage imageSection;[m
+[31m-		[m
+[31m-		switch(Thread.currentThread().getName()){[m
+[31m-		case "1":[m
+[31m-		case "2":[m
+[31m-		case "3":[m
+[31m-		case "4":[m
+[31m-		}[m
+[32m+[m	[32mpublic void run() {[m[41m		[m
+[32m+[m		[32mtextureTriangles(g2d);[m
+ 	}[m
+ 	[m
+[32m+[m	[32m@Override[m
+ 	protected void paintComponent(Graphics g) {[m
+ 		//p.setDisplayDimensions();[m
+[31m-		Graphics2D g2d = (Graphics2D) g;[m
+[32m+[m		[32mthis.g2d = (Graphics2D) g;[m
+[32m+[m[41m		[m
+[32m+[m		[32m//[m
+ 		g2d.setColor(Color.WHITE);[m
+ 		g2d.fillRect(0, 0, p.screenWidth, p.screenHeight);[m
+ 		g2d.setColor(Color.LIGHT_GRAY);[m
+ 		g2d.fillRect((int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight);[m
+ 		g2d.setColor(Color.BLACK);[m
+[31m-		//drawTriangles(g2d);[m
+[31m-		textureTriangles(g2d);[m
+[31m-		//drawPoints(g2d);[m
+[32m+[m[41m		[m
+[32m+[m		[32minitializeThreads();[m
+[32m+[m[41m		[m
+[32m+[m		[32mtry {[m
+[32m+[m			[32mfor(Thread thread : threads) {[m
+[32m+[m				[32mthread.join();[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}catch(Exception e) {[m
+[32m+[m			[32mSystem.out.println("Could not join threads");[m
+[32m+[m		[32m}[m
+[32m+[m[41m		[m
+[32m+[m		[32mdrawImages(g2d);[m
+[32m+[m[41m		[m
+ 	}[m
+[32m+[m[41m	[m
+[32m+[m	[32mpublic void initializeThreads() {[m
+[32m+[m		[32mthreads = new ArrayList<Thread>();[m
+[32m+[m[41m		[m
+[32m+[m		[32mfor(int i = 0; i < 4; i++) {[m
+[32m+[m			[32mthreads.add(new Thread(this, "" + i));[m
+[32m+[m		[32m}[m
+[32m+[m[41m		[m
+[32m+[m		[32mimageSections = new ArrayList<BufferedImage>();[m
+[32m+[m[41m		[m
+[32m+[m		[32mfor(int i = 0; i < threads.size(); i++) {[m
+[32m+[m			[32mif(p.innerWidth != 0) {[m
+[32m+[m				[32mimageSections.add(new BufferedImage((int) (p.innerWidth / 2.0), (int) (p.innerHeight / 2.0), BufferedImage.TYPE_INT_ARGB));[m
+[32m+[m			[32m}else {[m
+[32m+[m				[32mSystem.out.println("bals");[m
+[32m+[m				[32mreturn;[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}[m
+[32m+[m[41m		[m
+[32m+[m		[32mcorner1s = new ArrayList<Double[]>();[m
+[32m+[m[41m		[m
+[32m+[m		[32mcorner1s.add(new Double[] {0.0, 0.0});[m
+[32m+[m		[32mcorner1s.add(new Double[] {Math.floor(p.innerWidth / 2), 0.0});[m
+[32m+[m		[32mcorner1s.add(new Double[] {0.0, Math.floor(p.innerHeight / 2)});[m
+[32m+[m		[32mcorner1s.add(new Double[] {Math.floor(p.innerWidth / 2), Math.floor(p.innerHeight / 2)});[m
+[32m+[m[41m		[m
+[32m+[m		[32mcorner2s = new ArrayList<Double[]>();[m
+[32m+[m[41m		[m
+[32m+[m		[32mfor(int i = 0; i < corner1s.size(); i++) {[m
+[32m+[m			[32mcorner2s.add(new Double[] {Math.floor(corner1s.get(i)[0] + p.innerWidth / 2), Math.floor(corner1s.get(i)[1] + p.innerHeight / 2)});[m
+[32m+[m		[32m}[m
+ 		[m
+[32m+[m		[32mfor(Thread t : threads) {[m
+[32m+[m			[32mt.start();[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+[32m+[m	[32m//Draws the corresponding images for each thread[m
+[32m+[m	[32mpublic void drawImages(Graphics g2d) {[m
+[32m+[m		[32mint x;[m
+[32m+[m		[32mint y;[m
+[32m+[m		[32mint width = (int) (p.innerWidth / 2.0);[m
+[32m+[m		[32mint height = (int) (p.innerHeight / 2.0);[m
+[32m+[m		[32mfor(int i = 0; i < imageSections.size(); i++) {[m
+[32m+[m			[32mx = (int) (double) (p.startX + corner1s.get(i)[0]);[m
+[32m+[m			[32my = (int) (double) (p.startY + corner1s.get(i)[1]);[m
+[32m+[m[41m			[m
+[32m+[m			[32mg2d.drawImage(imageSections.get(i), x, y, width, height, null);[m
+[32m+[m		[32m}[m
+[32m+[m	[32m}[m
+[32m+[m[41m	[m
+ 	public void loadImages() {[m
+ 		try {[m
+ 			texture = ImageIO.read(new File("download.png"));[m
+[31m-		} catch (IOException e) {}[m
+[32m+[m		[32m} catch (IOException e) {	}[m
+ 	}[m
+ 	[m
+ 	//TODO Check if each point is within the inner window[m
+[36m@@ -79,153 +143,145 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 	}	[m
+ 	[m
+ 	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner[m
+[31m-		public ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {[m
+[31m-			ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();[m
+[31m-			clippedTriangles.add(originalTriangle);[m
+[31m-			//The starting triangle (may have already been clipped on other boundaries)[m
+[31m-			Double[][] triangle = null;[m
+[31m-			//The triangle after being clipped on the current boundary[m
+[31m-			Double[][] clippedTriangle = new Double[3][2];[m
+[31m-			[m
+[31m-			//If a point is inside the bounding box[m
+[31m-			boolean inside;[m
+[31m-			int[] insidePoints;[m
+[31m-			int insideSize;[m
+[31m-			int[] outsidePoints;[m
+[31m-			int outsideSize;[m
+[31m-			[m
+[31m-			//initial size of the clipped triangle array [m
+[31m-			int initialSize;[m
+[31m-			[m
+[31m-			//The 2 intersections with the current line (if it intersects)[m
+[31m-			Double[][] intersections;[m
+[31m-					[m
+[31m-			for(int i = 0; i < 4; i++) {[m
+[31m-				//We only want to cycle to the initial size. We will be adding new triangles, and if we use the actual size, it will continue removing the new triangles.[m
+[31m-				initialSize = clippedTriangles.size();[m
+[31m-				for(int b = 0; b < initialSize; b++) {[m
+[31m-					insidePoints = new int[3];[m
+[31m-					insideSize = 0;[m
+[31m-					outsidePoints = new int[3];[m
+[31m-					outsideSize = 0;[m
+[31m-					[m
+[31m-					triangle = clippedTriangles.get(0);[m
+[31m-					clippedTriangles.remove(0);[m
+[31m-					[m
+[31m-					for(int c = 0; c < 3; c++) {[m
+[31m-						inside = false;[m
+[31m-						[m
+[31m-						switch(i) {[m
+[31m-						//top[m
+[31m-						case 0:[m
+[31m-							if(triangle[c][1] > corner1[1]) {[m
+[31m-								inside = true;[m
+[31m-							}[m
+[31m-							break;[m
+[31m-						//bottom[m
+[31m-						case 1:[m
+[31m-							if(triangle[c][1] < corner2[1]) {[m
+[31m-								inside = true;[m
+[31m-							}[m
+[31m-							break;[m
+[31m-						//left[m
+[31m-						case 2:[m
+[31m-							if(triangle[c][0] > corner1[0]) {[m
+[31m-								inside = true;[m
+[31m-							}[m
+[31m-							break;[m
+[31m-						//right[m
+[31m-						case 3:[m
+[31m-							if(triangle[c][0] < corner2[0]) {[m
+[31m-								inside = true;[m
+[31m-							}[m
+[31m-							break;[m
+[31m-						}[m
+[31m-						[m
+[31m-						if(inside) {[m
+[31m-							insidePoints[insideSize] = (c); [m
+[31m-							insideSize++;[m
+[31m-						}else {[m
+[31m-							outsidePoints[outsideSize] = (c); [m
+[31m-							outsideSize++;[m
+[31m-						}[m
+[31m-					}[m
+[31m-					[m
+[31m-					intersections = new Double[2][2];[m
+[32m+[m	[32mpublic ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {[m
+[32m+[m		[32mArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();[m
+[32m+[m		[32mclippedTriangles.add(originalTriangle);[m
+[32m+[m		[32m//The starting triangle (may have already been clipped on other boundaries)[m
+[32m+[m		[32mDouble[][] triangle = null;[m
+[32m+[m		[32m//The triangle after being clipped on the current boundary[m
+[32m+[m		[32mDouble[][] clippedTriangle = new Double[3][2];[m
+[32m+[m[41m		[m
+[32m+[m		[32m//If a point is inside the bounding box[m
+[32m+[m		[32mboolean inside;[m
+[32m+[m		[32mint[] insidePoints;[m
+[32m+[m		[32mint insideSize;[m
+[32m+[m		[32mint[] outsidePoints;[m
+[32m+[m		[32mint outsideSize;[m
+[32m+[m[41m		[m
+[32m+[m		[32m//initial size of the clipped triangle array[m[41m [m
+[32m+[m		[32mint initialSize;[m
+[32m+[m[41m		[m
+[32m+[m		[32m//The 2 intersections with the current line (if it intersects)[m
+[32m+[m		[32mDouble[][] intersections;[m
+[32m+[m[41m				[m
+[32m+[m		[32mfor(int i = 0; i < 4; i++) {[m
+[32m+[m			[32m//We only want to cycle to the initial size. We will be adding new triangles, and if we use the actual size, it will continue removing the new triangles.[m
+[32m+[m			[32minitialSize = clippedTriangles.size();[m
+[32m+[m			[32mfor(int b = 0; b < initialSize; b++) {[m
+[32m+[m				[32minsidePoints = new int[3];[m
+[32m+[m				[32minsideSize = 0;[m
+[32m+[m				[32moutsidePoints = new int[3];[m
+[32m+[m				[32moutsideSize = 0;[m
+[32m+[m[41m				[m
+[32m+[m				[32mtriangle = clippedTriangles.get(0);[m
+[32m+[m				[32mclippedTriangles.remove(0);[m
+[32m+[m[41m				[m
+[32m+[m				[32mfor(int c = 0; c < 3; c++) {[m
+[32m+[m					[32minside = false;[m
+ 					[m
+[31m-					//If a triangle is outside (outsideSize == 3), we do nothing. The triangle is already removed.[m
+[31m-					if(outsideSize == 2) {						[m
+[31m-						switch(i) {[m
+[31m-						//top[m
+[31m-						case 0:[m
+[31m-							intersections = collision(corner1[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);[m
+[31m-							break;[m
+[31m-						//bottom[m
+[31m-						case 1:[m
+[31m-							intersections = collision(corner2[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);[m
+[31m-							break;[m
+[31m-						//left[m
+[31m-						case 2:[m
+[31m-							intersections = collision(corner1[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);[m
+[31m-							break;[m
+[31m-						//right[m
+[31m-						case 3:[m
+[31m-							intersections = collision(corner2[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);[m
+[31m-							break;[m
+[32m+[m					[32mswitch(i) {[m
+[32m+[m					[32m//top[m
+[32m+[m					[32mcase 0:[m
+[32m+[m						[32mif(triangle[c][1] > corner1[1]) {[m
+[32m+[m							[32minside = true;[m
+ 						}[m
+[31m-						[m
+[31m-						if(intersections[0][0] == null || intersections[1][0] == null || intersections[0][1] == null || intersections[1][1] == null) {[m
+[31m-							System.out.println("big balls");[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//bottom[m
+[32m+[m					[32mcase 1:[m
+[32m+[m						[32mif(triangle[c][1] < corner2[1]) {[m
+[32m+[m							[32minside = true;[m
+ 						}[m
+[31m-												[m
+[31m-						clippedTriangle[0] = triangle[insidePoints[0]];[m
+[31m-						clippedTriangle[1] = intersections[0];[m
+[31m-						clippedTriangle[2] = intersections[1];[m
+[31m-						clippedTriangles.add(clippedTriangle.clone());[m
+[31m-					}else if(outsideSize == 1) {[m
+[31m-						switch(i) {[m
+[31m-						//top[m
+[31m-						case 0:	[m
+[31m-							intersections = collision(corner1[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);[m
+[31m-							break;[m
+[31m-						//bottom[m
+[31m-						case 1:[m
+[31m-							intersections = collision(corner2[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);[m
+[31m-							break;[m
+[31m-						//left[m
+[31m-						case 2:[m
+[31m-							intersections = collision(corner1[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);[m
+[31m-							break;[m
+[31m-						//right[m
+[31m-						case 3:[m
+[31m-							intersections = collision(corner2[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);[m
+[31m-							break;[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//left[m
+[32m+[m					[32mcase 2:[m
+[32m+[m						[32mif(triangle[c][0] > corner1[0]) {[m
+[32m+[m							[32minside = true;[m
+ 						}[m
+[31m-						[m
+[31m-						if(intersections[0][0] == null || intersections[1][0] == null || intersections[0][1] == null || intersections[1][1] == null) {[m
+[31m-							System.out.println("big balls");[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//right[m
+[32m+[m					[32mcase 3:[m
+[32m+[m						[32mif(triangle[c][0] < corner2[0]) {[m
+[32m+[m							[32minside = true;[m
+ 						}[m
+[31m-						[m
+[31m-						clippedTriangle[0] = triangle[insidePoints[0]];[m
+[31m-						clippedTriangle[1] = intersections[0];[m
+[31m-						clippedTriangle[2] = intersections[1];[m
+[31m-						clippedTriangles.add(clippedTriangle.clone());[m
+[31m-						[m
+[31m-						//The commented line is uneccesary because it already has that value.[m
+[31m-						clippedTriangle[0] = triangle[insidePoints[0]];[m
+[31m-						clippedTriangle[1] = triangle[insidePoints[1]];[m
+[31m-						clippedTriangle[2] = intersections[1];[m
+[31m-						clippedTriangles.add(clippedTriangle.clone());[m
+[31m-					}else if(outsideSize == 0){[m
+[31m-						//If the triangle is fully inside, we want to add it back (we already removed it)[m
+[31m-						clippedTriangles.add(triangle.clone());[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m}[m
+[32m+[m[41m					[m
+[32m+[m					[32mif(inside) {[m
+[32m+[m						[32minsidePoints[insideSize] = (c);[m[41m [m
+[32m+[m						[32minsideSize++;[m
+[32m+[m					[32m}else {[m
+[32m+[m						[32moutsidePoints[outsideSize] = (c);[m[41m [m
+[32m+[m						[32moutsideSize++;[m
+ 					}[m
+ 				}[m
+[31m-			}	[m
+[31m-			[m
+[31m-			return clippedTriangles;[m
+[32m+[m[41m				[m
+[32m+[m				[32mintersections = new Double[2][2];[m
+[32m+[m[41m				[m
+[32m+[m				[32m//If a triangle is outside (outsideSize == 3), we do nothing. The triangle is already removed.[m
+[32m+[m				[32mif(outsideSize == 2) {[m[41m						[m
+[32m+[m					[32mswitch(i) {[m
+[32m+[m					[32m//top[m
+[32m+[m					[32mcase 0:[m
+[32m+[m						[32mintersections = collision(corner1[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//bottom[m
+[32m+[m					[32mcase 1:[m
+[32m+[m						[32mintersections = collision(corner2[1], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], true);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//left[m
+[32m+[m					[32mcase 2:[m
+[32m+[m						[32mintersections = collision(corner1[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//right[m
+[32m+[m					[32mcase 3:[m
+[32m+[m						[32mintersections = collision(corner2[0], triangle[outsidePoints[0]], triangle[outsidePoints[1]], triangle[insidePoints[0]], false);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m}[m
+[32m+[m[41m											[m
+[32m+[m					[32mclippedTriangle[0] = triangle[insidePoints[0]];[m
+[32m+[m					[32mclippedTriangle[1] = intersections[0];[m
+[32m+[m					[32mclippedTriangle[2] = intersections[1];[m
+[32m+[m					[32mclippedTriangles.add(clippedTriangle.clone());[m
+[32m+[m				[32m}else if(outsideSize == 1) {[m
+[32m+[m					[32mswitch(i) {[m
+[32m+[m					[32m//top[m
+[32m+[m					[32mcase 0:[m[41m	[m
+[32m+[m						[32mintersections = collision(corner1[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//bottom[m
+[32m+[m					[32mcase 1:[m
+[32m+[m						[32mintersections = collision(corner2[1], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], true);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//left[m
+[32m+[m					[32mcase 2:[m
+[32m+[m						[32mintersections = collision(corner1[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m//right[m
+[32m+[m					[32mcase 3:[m
+[32m+[m						[32mintersections = collision(corner2[0], triangle[insidePoints[0]], triangle[insidePoints[1]], triangle[outsidePoints[0]], false);[m
+[32m+[m						[32mbreak;[m
+[32m+[m					[32m}[m
+[32m+[m[41m					[m
+[32m+[m					[32mclippedTriangle[0] = triangle[insidePoints[0]];[m
+[32m+[m					[32mclippedTriangle[1] = intersections[0];[m
+[32m+[m					[32mclippedTriangle[2] = intersections[1];[m
+[32m+[m					[32mclippedTriangles.add(clippedTriangle.clone());[m
+[32m+[m[41m					[m
+[32m+[m					[32m//The commented line is uneccesary because it already has that value.[m
+[32m+[m					[32mclippedTriangle[0] = triangle[insidePoints[0]];[m
+[32m+[m					[32mclippedTriangle[1] = triangle[insidePoints[1]];[m
+[32m+[m					[32mclippedTriangle[2] = intersections[1];[m
+[32m+[m					[32mclippedTriangles.add(clippedTriangle.clone());[m
+[32m+[m				[32m}else if(outsideSize == 0){[m
+[32m+[m					[32m//If the triangle is fully inside, we want to add it back (we already removed it)[m
+[32m+[m					[32mclippedTriangles.add(triangle.clone());[m
+[32m+[m				[32m}[m
+[32m+[m			[32m}[m
+[32m+[m		[32m}[m[41m	[m
+[32m+[m[41m		[m
+[32m+[m		[32mreturn clippedTriangles;[m
+ 			[m
+[31m-		}[m
+[32m+[m	[32m}[m
+ 	[m
+ 	//Triangle collision, p3 is the point that touches both lines which will be tested for collision[m
+ 	Double[][] collision(Double l1, Double[] p1, Double[] p2, Double[] p3, boolean horizontal){[m
+[36m@@ -270,6 +326,8 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 	[m
+ 	//Tex coords are not sorted[m
+ 	public void textureTriangles(Graphics2D g2d) {[m
+[32m+[m		[32mint threadNumber;[m
+[32m+[m[41m		[m
+ 		//The surface normal of a given triangle[m
+ 		Double[] triangleVector;[m
+ 		Double[] viewerVector;[m
+[36m@@ -279,8 +337,6 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 		[m
+ 		Double[][] triangle;[m
+ 		ArrayList<Double[][]> clippedTriangles;[m
+[31m-		Double[] corner1 = new Double[] {0.0, 0.0};[m
+[31m-		Double[] corner2 = new Double[] {p.innerWidth, p.innerHeight};[m
+ 		[m
+ 		p.calculateTriangleMidPoints();[m
+ 		p.calculateMidPointDistances();[m
+[36m@@ -289,8 +345,6 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 		[m
+ 		//Update z-buffer size / reset values to null[m
+ 		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];[m
+[31m-		finalImg = new BufferedImage((int) p.innerWidth, (int) p.innerHeight, BufferedImage.TYPE_INT_ARGB);[m
+[31m-[m
+ 		[m
+ 		for(int a = 0; a < p.triangles2d.size(); a++) {[m
+ 			[m
+[36m@@ -298,23 +352,28 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 			triangleVector = p.calculateVector(p.triangles3d.get(a));[m
+ 			angle2 = p.calculateVectorAngle(triangleVector, viewerToTriangleVector);[m
+ 						[m
+[31m-			if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {			[m
+[32m+[m			[32m//if(p.midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {[m[41m			[m
+ 				viewerVector = new Double[] {-Math.sin(p.viewerAngle[0]), Math.cos(p.viewerAngle[0]), 0.0};[m
+ 				angle = p.calculateVectorAngle(triangleVector, viewerVector);[m
+ 				[m
+[31m-				clippedTriangles = clipTriangle(p.triangles2d.get(a), corner1, corner2);[m
+[32m+[m				[32mthreadNumber = Integer.parseInt(Thread.currentThread().getName());[m
+[32m+[m				[32mclippedTriangles = clipTriangle(p.triangles2d.get(a), corner1s.get(threadNumber), corner2s.get(threadNumber));[m
+[32m+[m				[32m//clippedTriangles = new ArrayList<Double[][]>();[m
+[32m+[m				[32m//clippedTriangles.add(p.triangles2d.get(a));[m
+ 				[m
+ 				for(int b = 0; b < clippedTriangles.size(); b++) {[m
+ 					//TODO use the original triangle as an input, for interpolation[m
+ 					traverse(clippedTriangles.get(b), p.triangles2d.get(a), g2d, a, angle);[m
+ 				}[m
+[31m-			}[m
+[32m+[m			[32m//}[m
+ 		}[m
+ 		[m
+[31m-		g2d.drawImage(finalImg, (int) p.startX, (int) p.startY, (int) p.innerWidth, (int) p.innerHeight, null);[m
+ 	}[m
+ 	[m
+ 	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	[m
+[32m+[m		[32mint threadNumber = Integer.parseInt(Thread.currentThread().getName());[m
+[32m+[m		[32mBufferedImage img = imageSections.get(threadNumber);[m
+[32m+[m[41m		[m
+ 		Double[] temp;[m
+ 		[m
+ 		Integer[] p1 = new Integer[2];[m
+[36m@@ -380,13 +439,13 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 			[m
+ 			if(x1 > x2) {[m
+ 				for(int b = x1; b >= x2; b--) {[m
+[31m-					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {[m
+[32m+[m					[32mif(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {[m
+ 						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);[m
+ 					}[m
+ 				}[m
+ 			} else if(x1 < x2) {[m
+ 				for(int b = x1; b <= x2; b++) {[m
+[31m-					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {[m
+[32m+[m					[32mif(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {[m
+ 						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);[m
+ 					}[m
+ 				}[m
+[36m@@ -400,13 +459,13 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 			[m
+ 			if(x1 > x2) {[m
+ 				for(int b = x1; b >= x2; b--) {[m
+[31m-					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {[m
+[32m+[m					[32mif(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {[m
+ 						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);[m
+ 					}[m
+ 				}[m
+ 			} else if(x1 < x2) {[m
+ 				for(int b = x1; b <= x2; b++) {[m
+[31m-					if(b >= 0 && b < finalImg.getWidth() && i >= 0 && i < finalImg.getHeight()) {[m
+[32m+[m					[32mif(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {[m
+ 						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);[m
+ 					}[m
+ 				}[m
+[36m@@ -420,8 +479,13 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 		Color color;[m
+ 		Double[] point;[m
+ 		Double[] uv;[m
+[31m-		double y;[m
+ 		point = new Double[] {(double) b, (double) i};[m
+[32m+[m[41m		[m
+[32m+[m		[32mint threadNumber = Integer.parseInt(Thread.currentThread().getName());[m
+[32m+[m		[32mBufferedImage img = imageSections.get(threadNumber);[m
+[32m+[m		[32m//For specific threads, not the absolute x (adjusted for corner1)[m
+[32m+[m		[32mint x;[m
+[32m+[m		[32mint y;[m
+ 	[m
+ 		[m
+ 		uv = interpolateCoords(triangleY, p.calculateBaryCoords(originalTriangle, point), texCoords, b, i);[m
+[36m@@ -449,7 +513,16 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel), 254);[m
+ 		g2d.setColor(color);[m
+ 		[m
+[31m-		finalImg.setRGB(b, i, color.getRGB());[m
+[32m+[m		[32mx = (int) (b - corner1s.get(threadNumber)[0]);[m
+[32m+[m		[32my = (int) (i - corner1s.get(threadNumber)[1]);[m
+[32m+[m[41m		[m
+[32m+[m		[32mif(x >= img.getWidth()) {[m
+[32m+[m			[32mx = img.getWidth() - 1;[m
+[32m+[m		[32m}[m
+[32m+[m		[32mif(y >= img.getHeight()) {[m
+[32m+[m			[32my = img.getHeight() - 1;[m
+[32m+[m		[32m}[m
+[32m+[m		[32mimg.setRGB(x, y, color.getRGB());[m
+ 				[m
+ 	}[m
+ 	[m
+[36m@@ -526,7 +599,7 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 				baryCoords[1] / triangleY[1] + [m
+ 				baryCoords[2] / triangleY[2]);[m
+ 		[m
+[31m-		Double bufferedY = zBuffer[b][i];[m
+[32m+[m		[32mDouble bufferedY  = zBuffer[b][i];[m
+ 		[m
+ 		if(bufferedY != null) {[m
+ 			if(bufferedY < y) {[m
+[36m@@ -535,7 +608,7 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 		}[m
+ 		[m
+ 		zBuffer[b][i] = y;[m
+[31m-				[m
+[32m+[m[41m		[m
+ 		//y * (( t1.x / v1.y ) * b1 + ( t2.x / v2.y ) * b2 + ( t3.x / v3.y ) * b3)[m
+ 		u = y * ((texCoords[0][0] * baryCoords[0] / triangleY[0]) + [m
+ 				(texCoords[1][0] * baryCoords[1] / triangleY[1]) + [m
+[36m@@ -552,6 +625,7 @@[m [mpublic class Render extends JPanel implements Runnable{[m
+ 				texCoords[1][1] * baryCoords[1]  + [m
+ 				texCoords[2][1] * baryCoords[2]);[m
+ 		*/[m
+[32m+[m[41m		[m
+ 		uv = new Double[] {u, v};[m
+ 		return uv;[m
+ 	}[m
