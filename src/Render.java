@@ -15,15 +15,7 @@ public class Render extends JPanel implements Runnable{
 	Projection p;
 	Main m;
 	volatile Double[][] zBuffer;
-	/*
-	synchronized Double[][] zBuffer(){
-		return zBuffe;
-	}
-	
-	synchronized void setZBuffer(int a, int b, Double value) {
-		zBuffe[a][b] = value;
-	}
-	*/
+
 	Graphics2D g2d;
 	
 	BufferedImage texture;
@@ -43,7 +35,9 @@ public class Render extends JPanel implements Runnable{
 	
 	@Override
 	public void run() {		
-		textureTriangles(g2d);
+		textureTriangles();
+		//Either access of triangles3d/2d, or the projection function being called multiple times could be the issue
+		//Also maybe clip the whole triangles 2d and not each one at a time
 	}
 	
 	@Override
@@ -59,6 +53,12 @@ public class Render extends JPanel implements Runnable{
 		g2d.setColor(Color.BLACK);
 		
 		zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
+		
+		p.calculateTriangleMidPoints();
+		p.calculateMidPointDistances();
+		p.sortLists();
+		p.projectAll();
+		
 		initializeThreads();
 		
 		try {
@@ -69,7 +69,7 @@ public class Render extends JPanel implements Runnable{
 			System.out.println("Could not join threads");
 		}
 		
-		drawImages(g2d);
+		drawImages();
 		
 	}
 	
@@ -110,7 +110,7 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	//Draws the corresponding images for each thread
-	public void drawImages(Graphics g2d) {
+	public void drawImages() {
 		int x;
 		int y;
 		int width = (int) (p.innerWidth / 2.0);
@@ -130,7 +130,7 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	//TODO Check if each point is within the inner window
-	public void drawPoints(Graphics2D g2d) {
+	public void drawPoints() {
 		g2d.setColor(Color.BLACK);
 		int x;
 		int y;
@@ -334,7 +334,7 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	//Tex coords are not sorted
-	public void textureTriangles(Graphics2D g2d) {
+	public void textureTriangles() {
 		int threadNumber;
 		
 		//The surface normal of a given triangle
@@ -346,11 +346,6 @@ public class Render extends JPanel implements Runnable{
 		
 		Double[][] triangle;
 		ArrayList<Double[][]> clippedTriangles;
-		
-		p.calculateTriangleMidPoints();
-		p.calculateMidPointDistances();
-		p.sortLists();
-		p.projectAll();
 		
 		//Update z-buffer size / reset values to null
 		//zBuffer = new Double[(int) p.innerWidth][(int) p.innerHeight];
@@ -372,14 +367,14 @@ public class Render extends JPanel implements Runnable{
 				
 				for(int b = 0; b < clippedTriangles.size(); b++) {
 					//TODO use the original triangle as an input, for interpolation
-					traverse(clippedTriangles.get(b), p.triangles2d.get(a), g2d, a, angle);
+					traverse(clippedTriangles.get(b), p.triangles2d.get(a), a, angle);
 				}
 			}
 		}
 		
 	}
 	
-	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, Graphics2D g2d, int triangleNum, double angle) {	
+	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, int triangleNum, double angle) {	
 		int threadNumber = Integer.parseInt(Thread.currentThread().getName());
 		BufferedImage img = imageSections.get(threadNumber);
 		
@@ -449,13 +444,13 @@ public class Render extends JPanel implements Runnable{
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
 					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
 					}
 				}
 			}
@@ -469,13 +464,13 @@ public class Render extends JPanel implements Runnable{
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
 					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(g2d, i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
 					}
 				}
 			}
@@ -483,7 +478,7 @@ public class Render extends JPanel implements Runnable{
 		
 	}
 	
-	public void drawPoint(Graphics2D g2d, int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
+	public void drawPoint(int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
 		double lightLevel;
 		Color color;
 		Double[] point;
@@ -536,7 +531,7 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	//TODO Fix bug where triangles show up while looking sideways. Maybe each point is out of range but its drawing both?
-	public void drawTriangles(Graphics2D g2d) {
+	public void drawTriangles() {
 		int random;
 		Color c;
 		//The direction of the viewer

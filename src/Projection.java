@@ -25,7 +25,7 @@ public class Projection extends Display{
 	 * for, and the second field of the array represents which dimension we are looking for (x, y). There is no need
 	 * for a third dimension to represent distance, because we created the midDistance arrayList.
 	 */
-	ArrayList<Double[][]> triangles3d = new ArrayList<Double[][]>();
+	volatile ArrayList<Double[][]> triangles3d = new ArrayList<Double[][]>();
 	ArrayList<Double[]> triangleMidPoints = new ArrayList<Double[]>();
 	ArrayList<Double> midPointDistances = new ArrayList<Double>(); 
 	ArrayList<Double[][]> triangles2d = new ArrayList<Double[][]>();
