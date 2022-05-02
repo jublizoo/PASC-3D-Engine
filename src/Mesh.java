@@ -2,13 +2,20 @@ import java.util.ArrayList;
 
 public class Mesh {
 	
-	ArrayList<Integer[]> triangles;
-	ArrayList<Double[]> vertices;
-	Double[] center;
+	private ArrayList<Integer[]> triangles;
+	private ArrayList<Double[]> vertices;
+	private Double[] center;
+	//TODO UV storage
+	private ArrayList<Integer[]> uvTriangles;
+	private ArrayList<Double[]> uvs;
+	
 	
 	public Mesh() {
 		triangles = new ArrayList<Integer[]>();
 		vertices = new ArrayList<Double[]>();
+		uvTriangles = new ArrayList<Integer[]>();
+		uvs = new ArrayList<Double[]>();
+		
 	}
 	
 	public void calculateCenter() {
@@ -44,19 +51,19 @@ public class Mesh {
 	
 	//TODO Check functionality
 	public void rotate(Double[] origin, double angleX, double angleY, double angleZ) {
-			Double[] point;
-			Double[] relativePoint;
+			Double[] vertex;
+			Double[] relativeVertex;
 			Double[] rotation1 = new Double[] { 0.0, 0.0, 0.0 };
 			Double[] rotation2 = new Double[] { 0.0, 0.0, 0.0 };
 			Double[] rotation3 = new Double[] { 0.0, 0.0, 0.0 };
 			
 			for(int i = 0; i < vertices.size(); i++) {
-				point = vertices.get(i);
-				relativePoint = new Double[] { point[0] - origin[0], point[1] - origin[1], point[2] - origin[2] };
+				vertex = vertices.get(i);
+				relativeVertex = new Double[] { vertex[0] - origin[0], vertex[1] - origin[1], vertex[2] - origin[2] };
 				
-				rotation1[0] = relativePoint[0] * Math.cos(angleX) - relativePoint[1] * Math.sin(angleX);
-				rotation1[1] = relativePoint[0] * Math.sin(angleX) + relativePoint[1] * Math.cos(angleX);
-				rotation1[2] = relativePoint[2];
+				rotation1[0] = relativeVertex[0] * Math.cos(angleX) - relativeVertex[1] * Math.sin(angleX);
+				rotation1[1] = relativeVertex[0] * Math.sin(angleX) + relativeVertex[1] * Math.cos(angleX);
+				rotation1[2] = relativeVertex[2];
 
 				rotation2[1] = rotation1[1] * Math.cos(angleY) - rotation1[2] * Math.sin(angleY);
 				rotation2[2] = rotation1[1] * Math.sin(angleY) + rotation1[2] * Math.cos(angleY);
@@ -73,12 +80,52 @@ public class Mesh {
 					 * the initial relative point. Then, we  have the difference the rotation causes, which we add
 					 * to the start point to get the true final point.
 					 */
-					rotation3[i] += point[i] - relativePoint[i];
+					rotation3[i] += vertex[i] - relativeVertex[i];
 				}
 				
 				vertices.set(i, rotation3);
 			}
 
+	}
+	
+	public void addTriangle(Integer[] triangle) {
+		triangles.add(triangle);
+		
+	}
+	
+	public void addVertex(Double[] vertex) {
+		vertices.add(vertex);
+		
+	}
+	
+	public void addUVTriangle(Integer[] uvTriangle) {
+		uvTriangles.add(uvTriangle);
+		
+	}
+	
+	public void addUV(Double[] uv) {
+		uvs.add(uv);
+		
+	}
+	
+	public ArrayList<Integer[]> getTriangles() {
+		return triangles;
+		
+	}
+	
+	public ArrayList<Double[]> getVertices() {
+		return vertices;
+		
+	}
+	
+	public ArrayList<Integer[]> getUVTriangles() {
+		return uvTriangles;
+		
+	}
+	
+	public ArrayList<Double[]> getUVs() {
+		return uvs;
+		
 	}
 	
 }
