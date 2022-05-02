@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class UserInput extends Thread implements KeyListener{
 	//These values are passed in the constructor, and reference the object created in Main. We need these to change variables
-	Projection p;
+	Render render;
 	Main m;
 	Scanner scan;
 	String textInput;
@@ -22,8 +22,8 @@ public class UserInput extends Thread implements KeyListener{
 	//Direction the player is moving
 	String currentDirection = "";
 	
-	public UserInput(Projection p, Main m) {
-		this.p = p;
+	public UserInput(Render render, Main m) {
+		this.render = render;
 		this.m = m;
 		scan = new Scanner(System.in);
 		
@@ -122,18 +122,18 @@ public class UserInput extends Thread implements KeyListener{
 	 */
 	public void updatePosChange(){
 		if(currentDirection.equals("forward")) {
-			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0]);
-			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0]);
+			posChange[0] = -movementSpeed * Math.sin(render.viewerAngle[0]);
+			posChange[1] = movementSpeed * Math.cos(render.viewerAngle[0]);
 		}else if(currentDirection.equals("backward")) {
-			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] + Math.PI);
-			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] + Math.PI);
+			posChange[0] = -movementSpeed * Math.sin(render.viewerAngle[0] + Math.PI);
+			posChange[1] = movementSpeed * Math.cos(render.viewerAngle[0] + Math.PI);
 		}else if(currentDirection.equals("right")) {
-			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] - Math.PI / 2);
-			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] - Math.PI / 2);
+			posChange[0] = -movementSpeed * Math.sin(render.viewerAngle[0] - Math.PI / 2);
+			posChange[1] = movementSpeed * Math.cos(render.viewerAngle[0] - Math.PI / 2);
 
 		}else if(currentDirection.equals("left")) {
-			posChange[0] = -movementSpeed * Math.sin(p.viewerAngle[0] + Math.PI / 2);
-			posChange[1] = movementSpeed * Math.cos(p.viewerAngle[0] + Math.PI / 2);
+			posChange[0] = -movementSpeed * Math.sin(render.viewerAngle[0] + Math.PI / 2);
+			posChange[1] = movementSpeed * Math.cos(render.viewerAngle[0] + Math.PI / 2);
 
 		}else if(currentDirection.equals("none")){
 			posChange[0] = 0.0;

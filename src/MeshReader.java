@@ -10,7 +10,7 @@ public class MeshReader {
 	File file;
 	FileReader fReader;
 	BufferedReader reader;
-	Projection p;
+	Render render;
 	ArrayList<String> wholeText;
 	Double[][] currentTriangle;
 	Double[][] currentUv;
@@ -24,8 +24,8 @@ public class MeshReader {
 	
 	Integer uvStartLine;
 	
-	public MeshReader(Projection p) {
-		this.p = p;
+	public MeshReader(Render render) {
+		this.render = render;
 		
 	}
 	
@@ -36,7 +36,7 @@ public class MeshReader {
 		wholeText = new ArrayList<String>();
 		System.out.println("MeshReader running");
 		int currentLineNum = 0;
-		int triangleIndex = p.triangles3d.size() - 1;
+		int triangleIndex = render.triangles.size() - 1;
 		String currentLine = "";
 		
 		file = new File(url);
@@ -53,7 +53,7 @@ public class MeshReader {
 		 * We need to add one to the triangle index, because no triangles have been added for this object, so it 
 		 * represents the last triangle of the previous object.
 		 */
-		p.objIndexes.add(new Integer[] {triangleIndex + 1, null});
+		render.objIndexes.add(new Integer[] {triangleIndex + 1, null});
 		
 		while(true) {
 			try {
@@ -68,7 +68,7 @@ public class MeshReader {
 			
 			if(currentLine == null) {
 				//Adding the index of the last triangle in this file.
-				p.objIndexes.get(p.objIndexes.size() - 1)[1] = triangleIndex;
+				render.objIndexes.get(render.objIndexes.size() - 1)[1] = triangleIndex;
 				System.out.println("MeshReader search completed.");
 				return;
 			}else {
@@ -77,17 +77,17 @@ public class MeshReader {
 					findLineNums(currentLine);
 					/*
 					 * We want to add elements to the following ArrayLists AFTER we call the findLineNums function,
-					 * because we need to set the most recent element of triangles3d directly after adding the element
+					 * because we need to set the most recent element of triangles directly after adding the element
 					 * with a null value. If we do not do this, the projectAll function will run through every triangle,
 					 * including the "unset" null triangle. This will lead to a null pointer exception. To set the most
-					 * recent element of triangles3d directly after adding the element, the currentTriangle Double[][]
+					 * recent element of triangles directly after adding the element, the currentTriangle Double[][]
 					 * must already be set, which is done by calling the findLineNums function, meaning it must be 
 					 * called first.
 					 */
 					initNewArrayListElements();
 					triangleIndex++;
-					p.triangles3d.set(triangleIndex, currentTriangle);
-					p.triangleUvs.set(triangleIndex, currentUv);
+					render.triangles.set(triangleIndex, currentTriangle);
+					render.triangleUvs.set(triangleIndex, currentUv);
 					setNewArrayListElements();
 					/*
 					 * try { Thread.sleep(20); }catch(Exception e){
@@ -107,19 +107,19 @@ public class MeshReader {
 
 	public void initNewArrayListElements() {
 		Double[] point2d;
-		p.triangles3d.add(new Double[3][3]);
-		p.triangleUvs.add(new Double[3][2]);
-		p.triangles2d.add(new Double[3][2]);
-		p.triangleMidPoints.add(new Double[3]);
-		p.midPointDistances.add(null);
+		render.triangles.add(new Double[3][3]);
+		render.triangleUvs.add(new Double[3][2]);
+		render.triangles2d.add(new Double[3][2]);
+		render.triangleMidPoints.add(new Double[3]);
+		render.midPointDistances.add(null);
 		
 	}
 	
 	public void setNewArrayListElements() {
 		//TODO Create function to calculate these for a single point, instead of calling a function to calculate all
-		p.projectAll();
-		p.calculateTriangleMidPoints();
-		p.calculateMidPointDistances();
+		render.projectAll();
+		render.calculateTriangleMidPoints();
+		render.calculateMidPointDistances();
 		//Add uv projection
 	}
 	
@@ -165,7 +165,7 @@ public class MeshReader {
 				/*
 				 * This " " is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 				 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
-				 * added to triangles3d, unless we manually add a space.
+				 * added to triangles, unless we manually add a space.
 j				 */
 				String currentLine = wholeText.get(uvLineNum) + " ";
 				//TODO Technically only one dimension of a vertex, so might want to change
@@ -189,7 +189,7 @@ j				 */
 		vertexLineNum -= 1;
 		/*This " " is created, because otherwise the code to add the last vertex is not run. The code to add each vertex
 		 * is only run when there is a space, but the last character is not a space, so the final vertex will not be
-		 * added to triangles3d, unless we manually add a space.
+		 * added to triangles, unless we manually add a space.
 		 */
 		String currentLine = wholeText.get(vertexLineNum) + " ";
 		//TODO Technically only one dimension of a vertex, so might want to change
