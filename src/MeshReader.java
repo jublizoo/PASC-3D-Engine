@@ -10,24 +10,6 @@ public class MeshReader {
 	File file;
 	FileReader fReader;
 	BufferedReader reader;
-	Render render;
-	ArrayList<String> wholeText;
-	Double[][] currentTriangle;
-	Double[][] currentUv;
-	/* 
-	 * Where we should start looking for faces, vertices, and UVs, because the first few characters are used purely for
-	 * identification, and therefore we do not need to search them for information.
-	 */
-	final static int faceStartChar = 2;
-	final static int vertexStartChar = 2;
-	final static int uvStartChar = 3;
-	
-	Integer uvStartLine;
-	
-	public MeshReader(Render render) {
-		this.render = render;
-		
-	}
 	
 	public void readMesh(String url, Mesh mesh) {	
 		file = new File(url);
@@ -151,7 +133,23 @@ public class MeshReader {
 			return triangles;
 		
 	}
-		
+	
+	ArrayList<String> wholeText;
+	Double[][] currentTriangle;
+	Double[][] currentUv;
+	/* 
+	 * Where we should start looking for faces, vertices, and UVs, because the first few characters are used purely for
+	 * identification, and therefore we do not need to search them for information.
+	 */
+	final static int faceStartChar = 2;
+	final static int vertexStartChar = 2;
+	final static int uvStartChar = 3;
+	
+	Integer uvStartLine;
+	Render render;
+	public MeshReader(Render render) {
+		this.render = render;
+	}
 	//TODO Search for the line number of the first line containing UVs.
 	public void readFile(String url) {
 		uvStartLine = null;

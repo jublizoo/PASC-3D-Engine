@@ -43,21 +43,6 @@ public class Render extends JPanel implements Runnable{
 	final double viewerHeight = viewerWidth / aspectRatio;
 	Double[] viewerPos = new Double[] { -5.0, -5.0, 0.0 };
 	Double[] viewerAngle = new Double[] {-0.78, 0.0};
-	
-	/*
-	 * The triangles arrayList will store the location of each vertex in each triangle in 3D space. Each Double[][] stores a 
-	 * triangle, the first field of the array represents which vertex we are looking for, and the second field of the
-	 * array represents which dimension we are looking for (x, y, z). 
-	 * The trianglesMid arrayList will store the location of the midpoint of each corresponding triangle. Each Double[]
-	 * stores a midpoint, and the field of the array represents which dimension of the midpoint we are looking for 
-	 * (x, y, z).
-	 * The midDistance arrayList will store the distance of each midpoint to the viewer. Each Double stores a distance
-	 * from the viewer to the corresponding midPoint.
-	 * The triangles2d arrayList will store the location of each corresponding vertex in each corresponding triangle in
-	 * 3D space. Each Double[][] stores a triangle,  the first field of the array represents which vertex we are looking
-	 * for, and the second field of the array represents which dimension we are looking for (x, y). There is no need
-	 * for a third dimension to represent distance, because we created the midDistance arrayList.
-	 */
 	ArrayList<Double[][]> triangles = new ArrayList<Double[][]>();
 	ArrayList<Double[]> triangleMidPoints = new ArrayList<Double[]>();
 	ArrayList<Double> midPointDistances = new ArrayList<Double>(); 
@@ -172,7 +157,7 @@ public class Render extends JPanel implements Runnable{
 		} catch (IOException e) {	}
 	}
 	
-	//TODO Check if each point is within the inner window
+	//TODO Check if each vertex is within the inner window
 	public void drawPoints() {
 		g2d.setColor(Color.BLACK);
 		int x;
@@ -203,7 +188,7 @@ public class Render extends JPanel implements Runnable{
 		//The triangle after being clipped on the current boundary
 		Double[][] clippedTriangle = new Double[3][2];
 		
-		//If a point is inside the bounding box
+		//If a vertex is inside the bounding box
 		boolean inside;
 		int[] insidePoints;
 		int insideSize;
@@ -335,9 +320,9 @@ public class Render extends JPanel implements Runnable{
 			
 	}
 	
-	//Triangle collision, p3 is the point that touches both lines which will be tested for collision
+	//Triangle collision, p3 is the vertex that touches both lines which will be tested for collision
 	Double[][] collision(Double l1, Double[] p1, Double[] p2, Double[] p3, boolean horizontal){
-		//Each intersection point
+		//Each intersection vertex
 		Double[] i1 = new Double[2];
 		Double[] i2 = new Double[2];
 		
@@ -427,11 +412,11 @@ public class Render extends JPanel implements Runnable{
 		Integer[] p2 = new Integer[2];
 		Integer[] p3 = new Integer[2];
 		
-		//Slope from points 1 - 2
+		//Slope from vertices 1 - 2
 		double m1;
-		//Slope from points 1 - 3
+		//Slope from vertices 1 - 3
 		double m2;
-		//Slope from points 2 - 3
+		//Slope from vertices 2 - 3
 		double m3;
 		
 		Double[] triangleY = new Double[3];
@@ -443,10 +428,10 @@ public class Render extends JPanel implements Runnable{
 		int x2;
 		
 		for(int i = 0; i < 3; i++) {
-			triangleY[i] = rotatePoint(triangles.get(triangleNum)[i], -viewerAngle[0], -viewerAngle[1])[1] - viewerPos[1];
+			triangleY[i] = rotateVertex(triangles.get(triangleNum)[i], -viewerAngle[0], -viewerAngle[1])[1] - viewerPos[1];
 		}	 
 
-		//Setting p1 to the largest y-value point
+		//Setting p1 to the largest y-value vertex
 		for(int i = 1; i < 3; i++) {
 			if(triangle[i][1] 
 					> 
@@ -458,7 +443,7 @@ public class Render extends JPanel implements Runnable{
 			}
 		}
 		
-		//Setting p2 to the second largest y-value point
+		//Setting p2 to the second largest y-value vertex
 		if(triangle[1][1] < triangle[2][1]) {
 			//Swap
 			temp = triangle[1];
@@ -524,9 +509,9 @@ public class Render extends JPanel implements Runnable{
 	public void drawPoint(int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
 		double lightLevel;
 		Color color;
-		Double[] point;
+		Double[] vertex;
 		Double[] uv;
-		point = new Double[] {(double) b, (double) i};
+		vertex = new Double[] {(double) b, (double) i};
 		
 		int threadNumber = Integer.parseInt(Thread.currentThread().getName());
 		BufferedImage img = imageSections.get(threadNumber);
@@ -535,7 +520,7 @@ public class Render extends JPanel implements Runnable{
 		int y;
 	
 		
-		uv = interpolateCoords(triangleY, calculateBaryCoords(originalTriangle, point), texCoords, b, i);
+		uv = interpolateCoords(triangleY, calculateBaryCoords(originalTriangle, vertex), texCoords, b, i);
 		
 		if(uv == null) {
 			return;
@@ -573,7 +558,7 @@ public class Render extends JPanel implements Runnable{
 				
 	}
 	
-	//TODO Fix bug where triangles show up while looking sideways. Maybe each point is out of range but its drawing both?
+	//TODO Fix bug where triangles show up while looking sideways. Maybe each vertex is out of range but its drawing both?
 	public void drawTriangles() {
 		int random;
 		Color c;
@@ -581,13 +566,13 @@ public class Render extends JPanel implements Runnable{
 		Double[] viewerVector;
 		//The surface normal of a given triangle
 		Double[] triangleVector;
-		//The vector starting at the viewer, going to the midpoint of a given triangle.
+		//The vector starting at the viewer, going to the midvertex of a given triangle.
 		Double[] viewerToTriangleVector;
 		//Angle between the direction of a certain vector (usually a light), and the direction of a given triangle
 		Double angle;
 		/*
 		 * This angle is between the direction a triangle is facing, and the vector starting at the viewer,
-		 * going to the midpoint of this triangle. It is used for backface culling. We cannot use our first 
+		 * going to the midvertex of this triangle. It is used for backface culling. We cannot use our first 
 		 * angle for back face culling, because it results in faces that you should be able to see, but are
 		 * not rendered. Imagine your rotate the camera to face the triangle. In the case of the first angle
 		 * calculation, the angle would change, which could affect if the triangle is displayed. This should
@@ -627,7 +612,7 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	public Double[] interpolateCoords(Double[] triangleY, Double[] baryCoords, Double[][] texCoords, int b, int i) {
-		//The y coordinate of our point
+		//The y coordinate of our vertex
 		double y;
 		//The final uv coordinates
 		double u;
@@ -636,10 +621,10 @@ public class Render extends JPanel implements Runnable{
 		//this is fax af
 		/*
 		 * Using the barycentric coordinates to find the z-coord. We use triangle[i][1], because we want to access
-		 * the y coordinate of our point. Normally this would be referred to as z or w, but we use a different 
+		 * the y coordinate of our vertex. Normally this would be referred to as z or w, but we use a different 
 		 * coordinate system where z is vertical. Technically, our camera does not rotate (we rotate the world 
-		 * instead), so our y-coordinate is the "depth" of each point. The equation is listed below, where 
-		 * b1, b2, and b3 are the barycentric coordinates of each point, and v1, v2, and v3 is each point.
+		 * instead), so our y-coordinate is the "depth" of each vertex. The equation is listed below, where 
+		 * b1, b2, and b3 are the barycentric coordinates of each vertex, and v1, v2, and v3 is each vertex.
 		 * 1 / ( ( 1 / v1.y ) * b1 + ( 1 / v2.y ) * b2 + ( 1 / v3.y ) * b3 )
 		 */
 		y = 1.0 / (baryCoords[0] / triangleY[0] + 
@@ -683,24 +668,24 @@ public class Render extends JPanel implements Runnable{
 		
 	}
 		
-	public Double[] projectPoint(Double[] point) {
-		Double[] point2d = new Double[2];
-		double relativeX = point[0] - viewerPos[0];
-		double relativeZ = point[2] - viewerPos[2];
-		double distance = point[1] - viewerPos[1];
+	public Double[] projectVertex(Double[] vertex) {
+		Double[] vertex2d = new Double[2];
+		double relativeX = vertex[0] - viewerPos[0];
+		double relativeZ = vertex[2] - viewerPos[2];
+		double distance = vertex[1] - viewerPos[1];
 		
 		
 		for(int i = 0; i < 3; i++) {
-			point2d[0] = innerWidth / 2 + scaleX * (relativeX * zNear / distance);
-			point2d[1] = innerHeight / 2 + scaleY * (relativeZ * zNear / distance);
+			vertex2d[0] = innerWidth / 2 + scaleX * (relativeX * zNear / distance);
+			vertex2d[1] = innerHeight / 2 + scaleY * (relativeZ * zNear / distance);
 		}
 		
-		return (point2d);
+		return (vertex2d);
 		
 	}
 	
 	//TODO Rewrite this math, and rename variables.
-	public Double[] rotatePoint(Double[] startPoint, double angleX, double angleY) {
+	public Double[] rotateVertex(Double[] startPoint, double angleX, double angleY) {
 		Double[] relativePoint = new Double[] { startPoint[0] - viewerPos[0], startPoint[1] - viewerPos[1], startPoint[2] - viewerPos[2] };
 		Double[] rotation1 = new Double[] { 0.0, 0.0, 0.0 };
 		Double[] rotation2 = new Double[] { 0.0, 0.0, 0.0 };
@@ -714,13 +699,7 @@ public class Render extends JPanel implements Runnable{
 		rotation2[0] = rotation1[0];
 		
 		for(int i = 0; i < 3; i++) {
-			/*
-			 * Subtracting the relativePoint, to find the difference in position. The final point is also
-			 * relative, but rotated, so we want to find the difference between the final relative point and
-			 * the initial relative point. Then, we  have the difference the rotation causes, which we add
-			 * to the start point to get the true final point.
-			 */
-			rotation2[i] += startPoint[i] - relativePoint[i];
+			rotation2[i] += viewerPos[i];
 		}
 		
 		return (new Double[] { rotation2[0], rotation2[1], rotation2[2] });
@@ -730,13 +709,13 @@ public class Render extends JPanel implements Runnable{
 	public void projectAll() {
 		scaleX = innerWidth / viewerWidth;
 		scaleY = innerHeight / viewerHeight;
-		Double[] point2d = new Double[] {};
+		Double[] vertex2d = new Double[] {};
 		
 		for(int a = 0; a < triangles.size(); a++) {
 			for(int b = 0; b < 3; b++) {
-				point2d = projectPoint(rotatePoint(triangles.get(a)[b], -viewerAngle[0], -viewerAngle[1]));
+				vertex2d = projectVertex(rotateVertex(triangles.get(a)[b], -viewerAngle[0], -viewerAngle[1]));
 					
-				triangles2d.get(a)[b] = point2d;
+				triangles2d.get(a)[b] = vertex2d;
 			}
 		}
 
@@ -763,16 +742,17 @@ public class Render extends JPanel implements Runnable{
 	}
 	
 	public void calculateMidPointDistances() {
-		Double[] point3d;
-		Double[] rotatedPoint3d;
+		Double[] vertex;
+		Double[] rotatedVertex;
 		Double distance;
 		
 		for(int i = 0; i < triangleMidPoints.size(); i++) {
-			point3d = triangleMidPoints.get(i);
-			rotatedPoint3d = rotatePoint(point3d, -viewerAngle[0], -viewerAngle[1]);
-			distance = rotatedPoint3d[1] - viewerPos[1];
+			vertex = triangleMidPoints.get(i);
+			rotatedVertex = rotateVertex(vertex, -viewerAngle[0], -viewerAngle[1]);
+			distance = rotatedVertex[1] - viewerPos[1];
 			midPointDistances.set(i, distance);
 		}
+		
 	}
 	
 	/*
@@ -826,20 +806,20 @@ public class Render extends JPanel implements Runnable{
 
 	}
 	
-	public Double[]  calculateBaryCoords(Double[][] triangle, Double[] point) {
-		//The sub triangle opposite the corresponding points
+	public Double[]  calculateBaryCoords(Double[][] triangle, Double[] vertex) {
+		//The sub triangle opposite the corresponding vertices
 		Double[][] currentTriangle = new Double[3][2];
-		//The index of points 1 and 2 of each sub triangle (the third point is the point within the larger triangle)
+		//The index of vertices 1 and 2 of each sub triangle (the third vertex is the vertex within the larger triangle)
 		int p1;
 		int p2;
-		//The areas of the sub triangles opposite the corresponding points
+		//The areas of the sub triangles opposite the corresponding vertices
 		Double[] areas = new Double[3];
 		double totalArea = 0;
 		Double[] baryCoords = new Double[3];
 		
 		//Calculating the area of each sub triangle.
 		for(int i = 0; i < 3; i++) {
-			//Setting p1 and p2 to the "opposite" point on the triangle
+			//Setting p1 and p2 to the "opposite" vertex on the triangle
 			p1 = i + 1;
 			p2 = i + 2;
 			
@@ -853,7 +833,7 @@ public class Render extends JPanel implements Runnable{
 			
 			currentTriangle[0] = triangle[p1];
 			currentTriangle[1] = triangle[p2];
-			currentTriangle[2] = point;
+			currentTriangle[2] = vertex;
 		
 			areas[i] = calculateArea(currentTriangle);
 		}
@@ -881,7 +861,7 @@ public class Render extends JPanel implements Runnable{
 	/*
 	 * This function mostly involves vector math that I do not understand. Therefore, the calculations used to set the
 	 * final vector will most likely not make sense. The calculations to set vectors one and two are just subtracting
-	 * the points on each side that we use.
+	 * the vertices on each side that we use.
 	 */
 	public Double[] calculateVector(Double[][] triangle) {
 		//The final vector coordinates

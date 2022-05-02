@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class Mesh {
@@ -8,6 +9,9 @@ public class Mesh {
 	//TODO UV storage
 	private ArrayList<Integer[]> uvTriangles;
 	private ArrayList<Double[]> uvs;
+	private BufferedImage texture;
+	//If Render's version of the object is up to date
+	private boolean isSynchronized;
 	
 	
 	public Mesh() {
@@ -41,6 +45,7 @@ public class Mesh {
 		}
 		
 		calculateCenter();
+		isSynchronized = false;
 		
 	}
 	
@@ -85,7 +90,17 @@ public class Mesh {
 				
 				vertices.set(i, rotation3);
 			}
+			
+			isSynchronized = false;
 
+	}
+	
+	public void scale(double scaleFactor) {
+		for(int i = 0; i < vertices.size(); i++) {
+			for(int b = 0; b < 3; b++) {
+				vertices.get(i)[b] *= scaleFactor;
+			}
+		}
 	}
 	
 	public void addTriangle(Integer[] triangle) {
@@ -126,6 +141,24 @@ public class Mesh {
 	public ArrayList<Double[]> getUVs() {
 		return uvs;
 		
+	}
+	
+	public boolean isSynchronized() {
+		return isSynchronized;
+		
+	}
+	
+	public void setSyncronized() {
+		isSynchronized = true;
+		
+	}
+	
+	public BufferedImage getTexture() {
+		return texture;
+	}
+	
+	public void setTexture(BufferedImage texture) {
+		this.texture = texture;
 	}
 	
 }
