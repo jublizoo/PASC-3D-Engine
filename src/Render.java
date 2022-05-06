@@ -43,21 +43,63 @@ public class Render extends JPanel implements Runnable{
 	final double viewerHeight = viewerWidth / aspectRatio;
 	Double[] viewerPos = new Double[] { -5.0, -5.0, 0.0 };
 	Double[] viewerAngle = new Double[] {-0.78, 0.0};
-	ArrayList<Double[][]> triangles = new ArrayList<Double[][]>();
+	ArrayList<Double[]> vertices = new ArrayList<Double[]>();
+	ArrayList<Integer[]> triangles = new ArrayList<Integer[]>();
 	ArrayList<Double[]> triangleMidPoints = new ArrayList<Double[]>();
 	ArrayList<Double> midPointDistances = new ArrayList<Double>(); 
 	ArrayList<Double[][]> triangles2d = new ArrayList<Double[][]>();
 	ArrayList<Double[][]> triangleUvs = new ArrayList<Double[][]>();
-	/*
-	 * This stores the start and end index of each object within the triangles array. Each element of the ArrayList
-	 * represents a different object. Each Double[] stores the index of the first triangle of the object in the 
-	 * triangles ArrayList, and then the index of the last triangle of the object in the triangles ArrayList
-	 */
-	ArrayList<Integer[]> objIndexes = new ArrayList<Integer[]>();
-
-	public Render(Main m) {
+	ArrayList<Double[]> uvs = new ArrayList<Double[]>();
+	ArrayList<Integer[]> uvTriangles = new ArrayList<Integer[]>();
+	Scene scene;
+	
+	public Render(Main m, Scene scene) {
 		this.m = m;
+		this.scene = scene;
 		loadImages();
+		initializeScene();
+		
+	}
+	
+	//TODO Consider combining loops of triangles/uvTriangles and vertices/uvs
+	public void initializeScene() {
+		ArrayList<Mesh> meshes = scene.getMeshes();
+		Mesh mesh;
+		ArrayList<Integer[]> triangles;
+		ArrayList<Double[]> vertices;
+		ArrayList<Integer[]> uvTriangles;
+		ArrayList<Double[]> uvs;
+		
+		//Adding mesh information
+		for(int i = 0; i < meshes.size(); i++) {
+			mesh = meshes.get(i);
+			triangles = mesh.getTriangles();
+			vertices = mesh.getVertices();
+			uvTriangles = mesh.getUVTriangles();
+			uvs = mesh.getUVs();
+			
+			//Adding triangle/vertex information
+			for(int b = 0; b < triangles.size(); b++) {
+				this.triangles.add(triangles.get(b));
+				
+				triangles2d.add(new Double[3][2]);
+				triangleMidPoints.add(null);
+				midPointDistances.add(null);
+			}
+			
+			for(int b = 0; b < vertices.size(); b++) {
+				this.vertices.add(vertices.get(b));
+			}
+			
+			//Adding uvTriangle/uv information
+			for(int b = 0; b < uvTriangles.size(); b++) {
+				this.uvTriangles.add(uvTriangles.get(b));
+			}
+			
+			for(int b = 0; b < uvs.size(); b++) {
+				this.uvs.add(uvs.get(b));
+			}
+		}
 		
 	}
 	
@@ -137,6 +179,27 @@ public class Render extends JPanel implements Runnable{
 		}
 	}
 	
+	//Returns a triangle with actual positions in space, instead of indexes for the vertices
+	public Double[][] getTriangle(int i){
+		Double[][] triangle = new Double[3][3];
+		for(int a = 0; a < 3; a++) {
+			triangle[a] = vertices.get(triangles.get(i)[a]);
+		}
+		
+		return triangle;
+		
+	}
+	
+	public Double[][] getUV(int i){
+		Double[][] uv = new Double[3][2];
+		for(int a = 0; a < 3; a++) {
+			uv[a] = uvs.get(uvTriangles.get(i)[a]);
+		}
+		
+		return uv;
+		
+	}
+	
 	//Draws the corresponding images for each thread
 	public void drawImages() {
 		int x;
@@ -179,7 +242,7 @@ public class Render extends JPanel implements Runnable{
 				
 	}	
 	
-	//Corner 1 is the topleft corner. Corner 2 is the bottomright corner
+	//Corner 1 is the top left corner. Corner 2 is the bottom right corner
 	public ArrayList<Double[][]> clipTriangle(Double[][] originalTriangle, Double[] corner1, Double[] corner2) {
 		ArrayList<Double[][]> clippedTriangles = new ArrayList<Double[][]>();
 		clippedTriangles.add(originalTriangle);
@@ -381,7 +444,7 @@ public class Render extends JPanel implements Runnable{
 		for(int a = 0; a < triangles2d.size(); a++) {
 			
 			viewerToTriangleVector = new Double[] {triangleMidPoints.get(a)[0] - viewerPos[0], triangleMidPoints.get(a)[1] - viewerPos[1], triangleMidPoints.get(a)[2] - viewerPos[2]};
-			triangleVector = calculateVector(triangles.get(a));
+			triangleVector = calculateVector(getTriangle(a));
 			angle2 = calculateVectorAngle(triangleVector, viewerToTriangleVector);
 						
 			if(midPointDistances.get(a) > 0.5 && Math.abs(angle2) > Math.PI / 2) {			
@@ -420,7 +483,7 @@ public class Render extends JPanel implements Runnable{
 		double m3;
 		
 		Double[] triangleY = new Double[3];
-		Double[][] texCoords = triangleUvs.get(triangleNum);
+		Double[][] texCoords = getUV(triangleNum);
 		Double[][] triangle = clippedTriangle.clone();
 		
 		//The starting and ending x values for each triangle "slice" (startX was already taken)
@@ -428,7 +491,7 @@ public class Render extends JPanel implements Runnable{
 		int x2;
 		
 		for(int i = 0; i < 3; i++) {
-			triangleY[i] = rotateVertex(triangles.get(triangleNum)[i], -viewerAngle[0], -viewerAngle[1])[1] - viewerPos[1];
+			triangleY[i] = rotateVertex(getTriangle(triangleNum)[i], -viewerAngle[0], -viewerAngle[1])[1] - viewerPos[1];
 		}	 
 
 		//Setting p1 to the largest y-value vertex
@@ -532,18 +595,18 @@ public class Render extends JPanel implements Runnable{
 		if(uv[0] >= texture.getWidth()) {
 			uv[0] = (double) (texture.getWidth() - 1);
 		}else if(uv[0] <= 0) {
-			uv[0] = 1.0;
+			uv[0] = 0.0;
 		}
 		if(uv[1] >= texture.getHeight()) {
 			uv[1] = (double) texture.getHeight() - 1;
 		}else if(uv[1] <= 0) {
-			uv[1] = 1.0;
+			uv[1] = 0.0;
 		}
 		
 		lightLevel = calculateLight(angle);
 		color = new Color(texture.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
 		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel), 254);
-		g2d.setColor(color);
+		//g2d.setColor(color);
 		
 		x = (int) (b - corner1s.get(threadNumber)[0]);
 		y = (int) (i - corner1s.get(threadNumber)[1]);
@@ -582,13 +645,13 @@ public class Render extends JPanel implements Runnable{
 		int lightLevel;
 		calculateTriangleMidPoints();
 		calculateMidPointDistances();
-		sortLists();
+		//sortLists();
 		projectAll();
 		
 		for(int a = 0; a < triangles2d.size(); a++) {
 			viewerVector = new Double[] {-Math.sin(viewerAngle[0]), Math.cos(viewerAngle[0]), 0.0};
 			viewerToTriangleVector = new Double[] {triangleMidPoints.get(a)[0] - viewerPos[0], triangleMidPoints.get(a)[1] - viewerPos[1], triangleMidPoints.get(a)[2] - viewerPos[2]};
-			triangleVector = calculateVector(triangles.get(a));
+			triangleVector = calculateVector(getTriangle(a));
 			angle = calculateVectorAngle(triangleVector, viewerVector);
 			angle2 = calculateVectorAngle(triangleVector, viewerToTriangleVector);
 			System.out.println(angle2);
@@ -713,7 +776,7 @@ public class Render extends JPanel implements Runnable{
 		
 		for(int a = 0; a < triangles.size(); a++) {
 			for(int b = 0; b < 3; b++) {
-				vertex2d = projectVertex(rotateVertex(triangles.get(a)[b], -viewerAngle[0], -viewerAngle[1]));
+				vertex2d = projectVertex(rotateVertex(getTriangle(a)[b], -viewerAngle[0], -viewerAngle[1]));
 					
 				triangles2d.get(a)[b] = vertex2d;
 			}
@@ -727,7 +790,7 @@ public class Render extends JPanel implements Runnable{
 		for(int a = 0; a < triangles.size(); a++) {
 			for(int b = 0; b < 3; b++) {
 				for(int c = 0; c < 3; c++) {
-					tempAverage[c] += triangles.get(a)[b][c];
+					tempAverage[c] += getTriangle(a)[b][c];
 				}
 			}
 			
@@ -772,9 +835,8 @@ public class Render extends JPanel implements Runnable{
 			 * values, but we must store this information, because in the list it will be overwritten when we move
 			 * each element to the right.
 			 */
-			Double[][] key2 = triangles.get(i);
+			Integer[] key2 = triangles.get(i);
 			Double[] key3 = triangleMidPoints.get(i);
-			Double[][] key4 = triangleUvs.get(i);
 			//The index of the variable we compare our key to.
 			int a = i - 1;
 			
@@ -787,7 +849,6 @@ public class Render extends JPanel implements Runnable{
 				midPointDistances.set(a + 1, midPointDistances.get(a));
 				triangles.set(a + 1, triangles.get(a));
 				triangleMidPoints.set(a + 1, triangleMidPoints.get(a));
-				triangleUvs.set(a + 1, triangleUvs.get(a));
 				a--;
 			}
 			
@@ -801,7 +862,6 @@ public class Render extends JPanel implements Runnable{
 			midPointDistances.set(a + 1, key);
 			triangles.set(a + 1, key2);
 			triangleMidPoints.set(a + 1, key3);
-			triangleUvs.set(a + 1, key4);
 		}
 
 	}

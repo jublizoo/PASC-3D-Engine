@@ -17,14 +17,14 @@ public class Main implements ActionListener {
 	boolean cont = true;
 	boolean addFile = false;
 	
-	public Main() {
-		
+	public Main() {	
 		timer = new Timer(5, this);
-		render = new Render(this);
-		reader = new MeshReader(render);
-		reader.readFile("capybara.txt");
+		reader = new MeshReader();
+		Scene scene = new Scene();
 		Mesh mesh = new Mesh();
-		reader.readMesh("ico.txt", mesh);
+		reader.readMesh("capybara.txt", mesh);
+		scene.addMesh(mesh);
+		render = new Render(this, scene);
 		Double[] t;
 		for(int i = 0; i < mesh.getVertices().size(); i++) {
 			t = mesh.getVertices().get(i);
@@ -51,10 +51,6 @@ public class Main implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if(addFile) {
-			reader.readFile(fileName);
-			addFile = false;
-		}
 		render.setDisplayDimensions(frame.getContentPane().getWidth(), frame.getContentPane().getHeight());
 		render.resetParameters();
 		in.updatePosChange();

@@ -8,7 +8,7 @@ public class Light {
 		position = new Double[] {x, y, z};
 		angle = new Double[] {angleX, angleY, angleZ};
 		this.brightness = brightness;
-		
+			
 	}
 	
 	public double getBrightness() {
