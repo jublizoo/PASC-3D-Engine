@@ -20,17 +20,17 @@ public class Main implements ActionListener {
 	public Main() {	
 		timer = new Timer(5, this);
 		reader = new MeshReader();
+		
 		Scene scene = new Scene();
+		
 		Mesh mesh = new Mesh();
 		reader.readMesh("capybara.txt", mesh);
 		scene.addMesh(mesh);
-		render = new Render(this, scene);
-		Double[] t;
-		for(int i = 0; i < mesh.getVertices().size(); i++) {
-			t = mesh.getVertices().get(i);
-			System.out.println(t[0] + ", " + t[1] + ", " + t[2]);
-		}
+
+		Light light = new Light(1., 0., -5., 0., 0., 0.);
+		scene.addLight(light);
 		
+		render = new Render(this, scene);		
 		in = new UserInput(render, this);
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

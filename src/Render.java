@@ -53,6 +53,8 @@ public class Render extends JPanel implements Runnable{
 	ArrayList<Integer[]> uvTriangles = new ArrayList<Integer[]>();
 	Scene scene;
 	
+	//TODO Maybe sorting triangles but not vertices is what leads to fucked up texturing.
+	
 	public Render(Main m, Scene scene) {
 		this.m = m;
 		this.scene = scene;
@@ -146,7 +148,7 @@ public class Render extends JPanel implements Runnable{
 	public void initializeThreads() { 
 		threads = new ArrayList<Thread>();
 		
-		for(int i = 0; i < 4; i++) {
+		for(int i = 0; i < 8; i++) {
 			threads.add(new Thread(this, "" + i));
 		}
 		
@@ -163,15 +165,24 @@ public class Render extends JPanel implements Runnable{
 		
 		corner1s = new ArrayList<Double[]>();
 		
+		/*
 		corner1s.add(new Double[] {0.0, 0.0});
 		corner1s.add(new Double[] {Math.floor(innerWidth / 2), 0.0});
 		corner1s.add(new Double[] {0.0, Math.floor(innerHeight / 2)});
 		corner1s.add(new Double[] {Math.floor(innerWidth / 2), Math.floor(innerHeight / 2)});
-		
+		*/
+		corner1s.add(new Double[] {0.0, 0.0});
+		corner1s.add(new Double[] {Math.floor(innerWidth / 4), 0.0});
+		corner1s.add(new Double[] {Math.floor(innerWidth / 2), 0.0});
+		corner1s.add(new Double[] {Math.floor(3 * innerWidth / 4), 0.0});
+		corner1s.add(new Double[] {0.0, Math.floor(innerHeight / 2)});
+		corner1s.add(new Double[] {Math.floor(innerWidth / 4), Math.floor(innerHeight / 2)});
+		corner1s.add(new Double[] {Math.floor(innerWidth / 2), Math.floor(innerHeight / 2)});
+		corner1s.add(new Double[] {Math.floor(3 * innerWidth / 4), Math.floor(innerHeight / 2)});
 		corner2s = new ArrayList<Double[]>();
 		
 		for(int i = 0; i < corner1s.size(); i++) {
-			corner2s.add(new Double[] {Math.floor(corner1s.get(i)[0] + innerWidth / 2), Math.floor(corner1s.get(i)[1] + innerHeight / 2)});
+			corner2s.add(new Double[] {Math.floor(corner1s.get(i)[0] + innerWidth / 4), Math.floor(corner1s.get(i)[1] + innerHeight / 2)});
 		}
 		
 		for(Thread t : threads) {
@@ -432,8 +443,7 @@ public class Render extends JPanel implements Runnable{
 		Double[] triangleVector;
 		Double[] viewerVector;
 		Double[] viewerToTriangleVector;
-		Double angle;
-		Double angle2;	
+		Double angle;	
 		
 		Double[][] triangle;
 		ArrayList<Double[][]> clippedTriangles;
@@ -445,12 +455,9 @@ public class Render extends JPanel implements Runnable{
 			
 			viewerToTriangleVector = new Double[] {triangleMidPoints.get(a)[0] - viewerPos[0], triangleMidPoints.get(a)[1] - viewerPos[1], triangleMidPoints.get(a)[2] - viewerPos[2]};
 			triangleVector = calculateVector(getTriangle(a));
-			angle2 = calculateVectorAngle(triangleVector, viewerToTriangleVector);
+			angle = calculateVectorAngle(triangleVector, viewerToTriangleVector);
 						
-			if(midPointDistances.get(a) > 0.5 && Math.abs(angle2) > Math.PI / 2) {			
-				viewerVector = new Double[] {-Math.sin(viewerAngle[0]), Math.cos(viewerAngle[0]), 0.0};
-				angle = calculateVectorAngle(triangleVector, viewerVector);
-				
+			if(midPointDistances.get(a) > 0.5 && Math.abs(angle) > Math.PI / 2) {			
 				threadNumber = Integer.parseInt(Thread.currentThread().getName());
 				clippedTriangles = clipTriangle(triangles2d.get(a), corner1s.get(threadNumber), corner2s.get(threadNumber));
 				//clippedTriangles = new ArrayList<Double[][]>();
@@ -458,16 +465,18 @@ public class Render extends JPanel implements Runnable{
 				
 				for(int b = 0; b < clippedTriangles.size(); b++) {
 					//TODO use the original triangle as an input, for interpolation
-					traverse(clippedTriangles.get(b), triangles2d.get(a), a, angle);
+					traverse(clippedTriangles.get(b), triangles2d.get(a), a, triangleVector);
 				}
 			}
 		}
 		
 	}
 	
-	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, int triangleNum, double angle) {	
+	public void traverse(Double[][] clippedTriangle, Double[][] originalTriangle, int triangleNum, Double[] triangleVector) {	
 		int threadNumber = Integer.parseInt(Thread.currentThread().getName());
 		BufferedImage img = imageSections.get(threadNumber);
+		
+		double lightLevel = calculateLight(triangleNum);
 		
 		Double[] temp;
 		
@@ -535,13 +544,13 @@ public class Render extends JPanel implements Runnable{
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, lightLevel);
 					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, lightLevel);
 					}
 				}
 			}
@@ -555,13 +564,13 @@ public class Render extends JPanel implements Runnable{
 			if(x1 > x2) {
 				for(int b = x1; b >= x2; b--) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, lightLevel);
 					}
 				}
 			} else if(x1 < x2) {
 				for(int b = x1; b <= x2; b++) {
 					if(b >= corner1s.get(threadNumber)[0] && b < corner2s.get(threadNumber)[0] && i >= corner1s.get(threadNumber)[1] && i < corner2s.get(threadNumber)[1]) {
-						drawPoint(i, b, originalTriangle, triangleY, texCoords, angle);
+						drawPoint(i, b, originalTriangle, triangleY, texCoords, lightLevel);
 					}
 				}
 			}
@@ -569,8 +578,7 @@ public class Render extends JPanel implements Runnable{
 		
 	}
 	
-	public void drawPoint(int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double angle) {
-		double lightLevel;
+	public void drawPoint(int i, int b, Double[][] originalTriangle, Double[] triangleY, Double[][] texCoords, double lightLevel) {
 		Color color;
 		Double[] vertex;
 		Double[] uv;
@@ -603,7 +611,6 @@ public class Render extends JPanel implements Runnable{
 			uv[1] = 0.0;
 		}
 		
-		lightLevel = calculateLight(angle);
 		color = new Color(texture.getRGB((int)(double) (uv[0]), (int)(double) (uv[1])));
 		color = new Color((int) (color.getRed() * lightLevel), (int) (color.getGreen() * lightLevel), (int) (color.getBlue() * lightLevel), 254);
 		//g2d.setColor(color);
@@ -620,7 +627,8 @@ public class Render extends JPanel implements Runnable{
 		img.setRGB(x, y, color.getRGB());
 				
 	}
-	
+
+	//TODO Stop calculating light for every point, do it for every triangle
 	//TODO Fix bug where triangles show up while looking sideways. Maybe each vertex is out of range but its drawing both?
 	public void drawTriangles() {
 		int random;
@@ -631,8 +639,6 @@ public class Render extends JPanel implements Runnable{
 		Double[] triangleVector;
 		//The vector starting at the viewer, going to the midvertex of a given triangle.
 		Double[] viewerToTriangleVector;
-		//Angle between the direction of a certain vector (usually a light), and the direction of a given triangle
-		Double angle;
 		/*
 		 * This angle is between the direction a triangle is facing, and the vector starting at the viewer,
 		 * going to the midvertex of this triangle. It is used for backface culling. We cannot use our first 
@@ -641,8 +647,7 @@ public class Render extends JPanel implements Runnable{
 		 * calculation, the angle would change, which could affect if the triangle is displayed. This should
 		 * not happen, because rotating the camera should not change what faces are displayed.
 		 */
-		Double angle2;
-		int lightLevel;
+		Double angle;
 		calculateTriangleMidPoints();
 		calculateMidPointDistances();
 		//sortLists();
@@ -652,16 +657,12 @@ public class Render extends JPanel implements Runnable{
 			viewerVector = new Double[] {-Math.sin(viewerAngle[0]), Math.cos(viewerAngle[0]), 0.0};
 			viewerToTriangleVector = new Double[] {triangleMidPoints.get(a)[0] - viewerPos[0], triangleMidPoints.get(a)[1] - viewerPos[1], triangleMidPoints.get(a)[2] - viewerPos[2]};
 			triangleVector = calculateVector(getTriangle(a));
-			angle = calculateVectorAngle(triangleVector, viewerVector);
-			angle2 = calculateVectorAngle(triangleVector, viewerToTriangleVector);
-			System.out.println(angle2);
+			angle = calculateVectorAngle(triangleVector, viewerToTriangleVector);
+			System.out.println(angle);
 
 			
-			if(midPointDistances.get(a) > 0 && Math.abs(angle2) > Math.PI / 2) {
-				lightLevel = (int) (255 * calculateLight(angle));
-				c = new Color(lightLevel, lightLevel, lightLevel);
-				
-				g2d.setColor(c);
+			if(midPointDistances.get(a) > 0 && Math.abs(angle) > Math.PI / 2) {
+
 				
 				Path2D.Double triangle = new Path2D.Double();
 				triangle.moveTo(triangles2d.get(a)[0][0], triangles2d.get(a)[0][1]);
@@ -725,8 +726,22 @@ public class Render extends JPanel implements Runnable{
 		return uv;
 	}
 	
-	public double calculateLight(Double angle) {
-		double lightLevel =  ((angle / Math.PI));
+	public double calculateLight(int triangleNum) {
+		Double[] triangleVector = calculateVector(getTriangle(triangleNum));
+		double angle;
+		Double[] lightVector;
+		double lightLevel = 0;
+		//Double[] viewerVector = new Double[] {-Math.sin(viewerAngle[0]), Math.cos(viewerAngle[0]), 0.0};
+		//angle = calculateVectorAngle(triangleVector, viewerVector);
+		
+		for(int i = 0; i < scene.getLights().size(); i++) {
+			lightVector = scene.getLights().get(i).getVector();
+			angle = calculateVectorAngle(triangleVector, lightVector);
+			lightLevel += (angle / Math.PI);
+		}
+		
+		lightLevel /= scene.getLights().size();
+		
 		return lightLevel;
 		
 	}
@@ -837,6 +852,8 @@ public class Render extends JPanel implements Runnable{
 			 */
 			Integer[] key2 = triangles.get(i);
 			Double[] key3 = triangleMidPoints.get(i);
+			Integer[] key4 = uvTriangles.get(i);
+			
 			//The index of the variable we compare our key to.
 			int a = i - 1;
 			
@@ -849,6 +866,7 @@ public class Render extends JPanel implements Runnable{
 				midPointDistances.set(a + 1, midPointDistances.get(a));
 				triangles.set(a + 1, triangles.get(a));
 				triangleMidPoints.set(a + 1, triangleMidPoints.get(a));
+				uvTriangles.set(a + 1, uvTriangles.get(a));
 				a--;
 			}
 			
@@ -862,6 +880,7 @@ public class Render extends JPanel implements Runnable{
 			midPointDistances.set(a + 1, key);
 			triangles.set(a + 1, key2);
 			triangleMidPoints.set(a + 1, key3);
+			uvTriangles.set(a + 1, key4);
 		}
 
 	}

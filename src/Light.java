@@ -3,11 +3,13 @@ public class Light {
 	private double brightness;
 	private Double[] position;
 	private Double[] angle;
+	private Double[] vector;
 	
-	public Light(double brightness, double x, double y, double z, double angleX, double angleY, double angleZ) {
+	public Light(double brightness, double x, double y, double z, double angleX, double angleY) {
 		position = new Double[] {x, y, z};
-		angle = new Double[] {angleX, angleY, angleZ};
+		angle = new Double[] {angleX, angleY};
 		this.brightness = brightness;
+		updateVector();
 			
 	}
 	
@@ -41,6 +43,16 @@ public class Light {
 	
 	public Double[] getAngle() {
 		return angle;
+		
+	}
+	
+	public void updateVector() {
+		vector = new Double[] {Math.cos(angle[1]) * Math.cos(angle[0]), Math.cos(angle[1]) * Math.sin(angle[0]), Math.sin(angle[1])};
+		
+	}
+	
+	public Double[] getVector() {
+		return vector;
 		
 	}
 	
